@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Costruisci il tuo Video CV</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #f0f4ff 0%, #f8fafc 100%);
+        }
+        .step-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .question-option {
+            transition: all 0.2s ease;
+        }
+        .question-option.selected {
+            border-color: #4f46e5;
+            background-color: #f5f3ff;
+        }
+        textarea {
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        /* Regole specifiche per la stampa: nasconde l'interfaccia e formatta il copione su foglio bianco */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            #scriptOutputContainer {
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            #scriptCard {
+                background: white !important;
+                color: black !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+            #finalScriptText {
+                background: transparent !important;
+                color: black !important;
+                border: none !important;
+                font-size: 16pt !important;
+                line-height: 2 !important;
+                padding: 0 !important;
+                white-space: pre-wrap !important;
+            }
+            #print-header {
+                display: block !important;
+                margin-bottom: 2rem;
+                border-bottom: 2px solid #000;
+                padding-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 pb-20">
+
+    <!-- Header / Hero Section -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">🎬</span>
+                <div>
+                    <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Video CV Builder</h1>
+                    <p class="text-xs text-slate-500 font-medium">Crea la tua traccia passo dopo passo</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="text-right hidden sm:block">
+                    <span class="text-xs font-semibold text-indigo-600 uppercase tracking-wider">Il tuo progresso</span>
+                    <div class="w-32 h-2 bg-slate-100 rounded-full mt-1 overflow-hidden">
+                        <div id="progressBar" class="h-full bg-indigo-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+                <button onclick="resetForm()" class="text-xs text-slate-400 hover:text-rose-500 font-medium px-2 py-1 rounded transition">
+                    Ricomincia
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 mt-8 space-y-8">
+
+        <!-- Intro Box -->
+        <div class="bg-indigo-600 rounded-2xl p-6 text-white shadow-lg shadow-indigo-500/20 flex items-start gap-4 no-print">
+            <div class="text-3xl bg-white/10 p-3 rounded-xl">💡</div>
+            <div>
+                <h2 class="font-bold text-lg">Come funziona?</h2>
+                <p class="text-indigo-100 text-sm mt-1 leading-relaxed">
+                    Non devi inventare tutto da zero! Rispondi alle domande qui sotto come se stessi chiacchierando. Alcune sono fisse, altre puoi sceglierle tu in base a quello che ti rappresenta di più. Alla fine, il sistema unirà le tue risposte in un discorso pronto da leggere!
+                </p>
+            </div>
+        </div>
+
+        <!-- SEZIONE 1: APERTURA (FISSA) -->
+        <section class="step-card bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200/80 no-print">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="bg-rose-100 text-rose-700 font-extrabold px-3 py-1 rounded-lg text-xs uppercase tracking-wider">Passo 1 • Obbligatorio</span>
+                <h3 class="text-xl font-bold text-slate-900">Rompiamo il ghiaccio: Chi sei?</h3>
+            </div>
+            <p class="text-slate-500 text-sm mb-4">Questa è la prima frase del tuo video. Sii diretto e sorridi!</p>
+            
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <label class="block font-semibold text-slate-800 mb-2 text-sm md:text-base">
+                    📌 Chi sei, quanti anni hai, da dove vieni e per quale professione ti stai candidando in Ticino?
+                </label>
+                <textarea id="fixed_intro" rows="3" oninput="updateProgress()" class="w-full rounded-xl border border-slate-300 p-3 text-slate-700 text-sm md:text-base bg-white" placeholder="Es: Buongiorno! Mi chiamo Marco, ho 16 anni e vivo a Lugano. Con questo video vorrei candidarmi per un posto di apprendistato come..."></textarea>
+            </div>
+        </section>
+
+        <!-- SEZIONE 2: LA MOTIVAZIONE (SCELTA 1 SU 5) -->
+        <section class="step-card bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200/80 no-print">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="bg-amber-100 text-amber-800 font-extrabold px-3 py-1 rounded-lg text-xs uppercase tracking-wider">Passo 2 • Scegline 1</span>
+                <h3 class="text-xl font-bold text-slate-900">Perché proprio questo lavoro?</h3>
+            </div>
+            <p class="text-slate-500 text-sm mb-6">Clicca sulla domanda che ti ispira di più e scrivi la tua risposta.</p>
+
+            <div id="motivation_list" class="space-y-3"></div>
+        </section>
+
+        <!-- SEZIONE 3: IDENTITÀ E CARATTERE (SCELTA 1 SU 5) -->
+        <section class="step-card bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200/80 no-print">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="bg-emerald-100 text-emerald-800 font-extrabold px-3 py-1 rounded-lg text-xs uppercase tracking-wider">Passo 3 • Scegline 1</span>
+                <h3 class="text-xl font-bold text-slate-900">Il tuo carattere e le tue qualità</h3>
+            </div>
+            <p class="text-slate-500 text-sm mb-6">Fai capire al datore di lavoro che tipo di persona sei fuori dalla scuola. Scegli 1 domanda:</p>
+
+            <div id="identity_list" class="space-y-3"></div>
+        </section>
+
+        <!-- SEZIONE 4: VALORE AGGIUNTO / ESPERIENZE (SCELTA 1 O 2 SU 6) -->
+        <section class="step-card bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200/80 no-print">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="bg-purple-100 text-purple-800 font-extrabold px-3 py-1 rounded-lg text-xs uppercase tracking-wider">Passo 4 • Scegline 1 o 2</span>
+                <h3 class="text-xl font-bold text-slate-900">Esperienze, Passioni e Vita Pratica</h3>
+            </div>
+            <p class="text-slate-500 text-sm mb-6">Qui puoi scegliere <strong>una oppure due domande</strong> per raccontare cosa ti piace fare e cosa hai già sperimentato:</p>
+
+            <div id="experience_list" class="space-y-3"></div>
+        </section>
+
+        <!-- SEZIONE 5: CHIUSURA E CALL TO ACTION (FISSA) -->
+        <section class="step-card bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200/80 no-print">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="bg-rose-100 text-rose-700 font-extrabold px-3 py-1 rounded-lg text-xs uppercase tracking-wider">Passo 5 • Obbligatorio</span>
+                <h3 class="text-xl font-bold text-slate-900">Il Gran Finale</h3>
+            </div>
+            <p class="text-slate-500 text-sm mb-6">Lascia il segno! Rispondi a queste ultime tre domande per chiudere il video in modo professionale.</p>
+
+            <div class="space-y-5">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <label class="block font-semibold text-slate-800 mb-2 text-sm md:text-base">
+                        🚀 1. Come ti vedi tra 3 o 4 anni, alla fine di questo apprendistato?
+                    </label>
+                    <textarea id="fixed_future" rows="2" oninput="updateProgress()" class="w-full rounded-xl border border-slate-300 p-3 text-slate-700 text-sm md:text-base bg-white" placeholder="Es: Tra 4 anni mi vedo con l'attestato federale in mano, felice di essere diventato un professionista autonomo..."></textarea>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <label class="block font-semibold text-slate-800 mb-2 text-sm md:text-base">
+                        🤝 2. Perché un'azienda dovrebbe scommettere proprio su di te? (La tua promessa)
+                    </label>
+                    <textarea id="fixed_promise" rows="2" oninput="updateProgress()" class="w-full rounded-xl border border-slate-300 p-3 text-slate-700 text-sm md:text-base bg-white" placeholder="Es: Dovreste puntare su di me perché sono un ragazzo puntuale, imparo in fretta e ho una gran voglia di mettermi in gioco..."></textarea>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <label class="block font-semibold text-slate-800 mb-2 text-sm md:text-base">
+                        👋 3. Saluto finale e invito (Chiedi un colloquio o uno stage di prova!)
+                    </label>
+                    <textarea id="fixed_cta" rows="2" oninput="updateProgress()" class="w-full rounded-xl border border-slate-300 p-3 text-slate-700 text-sm md:text-base bg-white" placeholder="Es: Grazie mille per aver guardato il mio video! Sarei davvero felice di conoscervi di persona per un colloquio o per fare qualche giorno di stage di prova. A presto!"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- Box Avviso Errori -->
+        <div id="validationAlert" class="hidden bg-rose-50 border-2 border-rose-200 rounded-2xl p-5 text-rose-800 flex items-start gap-3 no-print">
+            <span class="text-2xl">⚠️</span>
+            <div>
+                <h4 class="font-bold">Quasi pronto! Manca ancora qualche dettaglio:</h4>
+                <ul id="validationList" class="list-disc list-inside text-sm mt-2 space-y-1 text-rose-700"></ul>
+            </div>
+        </div>
+
+        <!-- Pulsante Genera -->
+        <div class="pt-4 text-center no-print">
+            <button onclick="generateFinalScript()" class="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-extrabold text-lg py-4 px-10 rounded-2xl shadow-xl shadow-indigo-500/30 transform transition active:scale-95 flex items-center justify-center gap-3 mx-auto">
+                <span>✨ Genera il tuo Copione</span>
+            </button>
+        </div>
+
+        <!-- OUTPUT DEL COPIONE -->
+        <div id="scriptOutputContainer" class="hidden pt-6">
+            
+            <!-- Intestazione visibile SOLO quando si stampa su carta -->
+            <div id="print-header" class="hidden">
+                <h1 class="text-2xl font-bold">Il mio Copione per il Video CV</h1>
+                <p class="text-sm text-gray-600 mt-1">Consiglio: usa un evidenziatore per colorare le parole chiave, fai dei respiri tra i paragrafi e guarda nell'obiettivo!</p>
+            </div>
+
+            <div id="scriptCard" class="bg-slate-900 text-white rounded-3xl p-6 md:p-10 shadow-2xl border border-slate-700 relative overflow-hidden">
+                
+                <!-- Elementi visibili solo a schermo -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-700 pb-6 mb-6 no-print">
+                    <div>
+                        <span class="bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Pronto per registrare</span>
+                        <h3 class="text-2xl font-extrabold mt-2">Il tuo Copione Completo</h3>
+                        <p class="text-slate-400 text-xs mt-1">Puoi cliccare sul testo qui sotto per correggere o modificare qualsiasi parola prima di copiarlo o stamparlo.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-3 shrink-0">
+                        <button onclick="copyToClipboard()" id="copyBtn" class="bg-white/10 hover:bg-white/20 text-white font-semibold py-2.5 px-5 rounded-xl transition flex items-center gap-2 text-sm border border-white/10">
+                            <span>📋 Copia Testo</span>
+                        </button>
+                        <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-5 rounded-xl transition flex items-center gap-2 text-sm shadow-lg shadow-emerald-600/30">
+                            <span>🖨️ Stampa Copione</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Testo del copione editabile -->
+                <div id="finalScriptText" contenteditable="true" class="bg-slate-800/70 rounded-2xl p-6 text-slate-100 text-lg leading-relaxed whitespace-pre-line border border-slate-700 focus:outline-none focus:border-indigo-400"></div>
+
+                <!-- Consigli per la registrazione (nascosti in stampa) -->
+                <div class="mt-6 bg-indigo-950/60 border border-indigo-800/50 rounded-xl p-4 flex items-center gap-3 text-indigo-200 text-xs md:text-sm no-print">
+                    <span class="text-xl">📹</span>
+                    <p><strong>Consiglio da Pro:</strong> Non leggere tutto come un robot! Stampa il foglio, evidenzia le parole più importanti e attaccalo vicino alla fotocamera del telefono per usarlo come traccia.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Database Domande
+        const questionsDB = {
+            motivation: [
+                "Qual è stato il momento esatto (o l'episodio) in cui hai capito che volevi fare questo mestiere?",
+                "Cosa ti affascina di più di questa professione rispetto a qualsiasi altro lavoro?",
+                "Perché hai una forte spinta a imparare lavorando sul campo, piuttosto che stare solo sui banchi di scuola?",
+                "C'è qualcuno che conosci (un parente, un amico) o che hai visto lavorare che ti ha ispirato a scegliere questa strada? Cosa ammiri del suo modo di lavorare?",
+                "Immagina il tuo primo giorno di lavoro in questa professione: qual è la cosa che non vedi l'ora di iniziare a fare?"
+            ],
+            identity: [
+                "Scegli 3 parole che ti descrivono al 100% e racconta un brevissimo episodio che dimostri una di queste.",
+                "Cosa dicono i tuoi amici o le persone a te vicine che sai fare meglio degli altri? (Es. ascoltare, risolvere problemi tecnici, non arrendersi).",
+                "Qual è un ostacolo scolastico o personale che hai affrontato, e in che modo superarlo ti ha reso più maturo oggi?",
+                "Se devi organizzare qualcosa in gruppo, qual è il tuo ruolo naturale? (Es. l'organizzatore, il paciere, quello che esegue con precisione, quello che trova soluzioni).",
+                "Qual è una cosa che prima pensavi fosse difficilissima e ora invece, provando e riprovando, riesci a fare senza problemi?"
+            ],
+            experience: [
+                { badge: "Stage", text: "Hai già fatto uno stage di orientamento per questa professione? Qual è la cosa più preziosa che hai imparato sporcandoti le mani in quei giorni?" },
+                { badge: "Lavoretti", text: "Hai fatto piccoli lavoretti (aiutare in famiglia, giardino, baby-sitting) o volontariato? Cosa ti hanno insegnato sul prendersi delle responsabilità?" },
+                { badge: "Sport & Hobby", text: "Fai uno sport o hai un hobby che richiede allenamento e costanza? Quale lezione hai imparato che puoi portare nel mondo del lavoro?" },
+                { badge: "Gaming & Tech", text: "Sei un appassionato di videogiochi, informatica o internet? Quali abilità ti ha insegnato questa passione (es. pazienza, logica, lavoro di squadra online)?" },
+                { badge: "Manualità", text: "Ti piace smontare cose, creare, o aggiustare oggetti nel tempo libero? Fai un esempio di qualcosa che hai riparato o costruito con le tue mani." },
+                { badge: "In Famiglia", text: "Hai spesso il compito di badare a fratelli minori, animali domestici o aiutare molto in casa? Cosa ti ha insegnato sulla pazienza e sull'organizzazione?" }
+            ]
+        };
+
+        // Stato selezioni
+        let selectedMotivation = null;
+        let selectedIdentity = null;
+        let selectedExperiences = [];
+
+        function initApp() {
+            renderSingleChoice('motivation_list', questionsDB.motivation, 'mot');
+            renderSingleChoice('identity_list', questionsDB.identity, 'id');
+            renderMultiChoice('experience_list', questionsDB.experience, 'exp');
+        }
+
+        // Renderizza blocchi a scelta singola (Radio custom)
+        function renderSingleChoice(containerId, items, prefix) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            items.forEach((qText, idx) => {
+                const div = document.createElement('div');
+                div.id = `${prefix}_card_${idx}`;
+                div.className = "question-option border-2 border-slate-200 rounded-xl p-4 cursor-pointer hover:border-indigo-300 bg-white";
+                div.onclick = () => selectSingleOption(prefix, idx, items.length);
+                
+                div.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div id="${prefix}_circle_${idx}" class="w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center mt-0.5 shrink-0 transition">
+                            <div class="w-2.5 h-2.5 rounded-full bg-indigo-600 hidden" id="${prefix}_dot_${idx}"></div>
+                        </div>
+                        <span class="font-medium text-slate-800 text-sm md:text-base select-none">${qText}</span>
+                    </div>
+                    <div id="${prefix}_input_box_${idx}" class="hidden mt-4 pl-8" onclick="event.stopPropagation()">
+                        <textarea id="${prefix}_textarea_${idx}" rows="3" oninput="updateProgress()" class="w-full rounded-xl border border-slate-300 p-3 text-slate-700 text-sm md:text-base bg-white" placeholder="Scrivi qui la tua risposta..."></textarea>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Renderizza blocco a scelta multipla (Max 2)
+        function renderMultiChoice(containerId, items, prefix) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            items.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.id = `${prefix}_card_${idx}`;
+                div.className = "question-option border-2 border-slate-200 rounded-xl p-4 cursor-pointer hover:border-indigo-300 bg-white";
+                div.onclick = () => toggleMultiOption(prefix, idx);
+
+                div.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div id="${prefix}_box_${idx}" class="w-5 h-5 rounded-md border-2 border-slate-300 flex items-center justify-center mt-0.5 shrink-0 transition">
+                            <svg id="${prefix}_check_${idx}" class="w-3.5 h-3.5 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <div class="select-none">
+                            <span class="inline-block bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded text-xs mb-1">${item.badge}</span>
+                            <p class="font-medium text-slate-800 text-sm md:text-base">${item.text}</p>
+                        </div>
+                    </div>
+                    <div id="${prefix}_input_box_${idx}" class="hidden mt-4 pl-8" onclick="event.stopPropagation()">
+                        <textarea id="${prefix}_textarea_${idx}" rows="3" oninput="updateProgress()" class="w-full rounded-xl border border-slate-300 p-3 text-slate-700 text-sm md:text-base bg-white" placeholder="Racconta qui la tua esperienza..."></textarea>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function selectSingleOption(prefix, selectedIdx, total) {
+            if (prefix === 'mot') selectedMotivation = selectedIdx;
+            if (prefix === 'id') selectedIdentity = selectedIdx;
+
+            for (let i = 0; i < total; i++) {
+                const card = document.getElementById(`${prefix}_card_${i}`);
+                const circle = document.getElementById(`${prefix}_circle_${i}`);
+                const dot = document.getElementById(`${prefix}_dot_${i}`);
+                const inputBox = document.getElementById(`${prefix}_input_box_${i}`);
+
+                if (i === selectedIdx) {
+                    card.classList.add('selected');
+                    circle.classList.replace('border-slate-300', 'border-indigo-600');
+                    dot.classList.remove('hidden');
+                    inputBox.classList.remove('hidden');
+                    setTimeout(() => document.getElementById(`${prefix}_textarea_${i}`).focus(), 50);
+                } else {
+                    card.classList.remove('selected');
+                    circle.classList.replace('border-indigo-600', 'border-slate-300');
+                    dot.classList.add('hidden');
+                    inputBox.classList.add('hidden');
+                }
+            }
+            updateProgress();
+        }
+
+        function toggleMultiOption(prefix, idx) {
+            const pos = selectedExperiences.indexOf(idx);
+            const card = document.getElementById(`${prefix}_card_${idx}`);
+            const box = document.getElementById(`${prefix}_box_${idx}`);
+            const check = document.getElementById(`${prefix}_check_${idx}`);
+            const inputBox = document.getElementById(`${prefix}_input_box_${idx}`);
+
+            if (pos === -1) {
+                if (selectedExperiences.length >= 2) {
+                    alert("Puoi scegliere al massimo 2 domande in questa sezione!");
+                    return;
+                }
+                selectedExperiences.push(idx);
+                card.classList.add('selected');
+                box.classList.replace('border-slate-300', 'border-indigo-600');
+                box.classList.add('bg-indigo-600');
+                check.classList.remove('hidden');
+                inputBox.classList.remove('hidden');
+                setTimeout(() => document.getElementById(`${prefix}_textarea_${idx}`).focus(), 50);
+            } else {
+                selectedExperiences.splice(pos, 1);
+                card.classList.remove('selected');
+                box.classList.replace('border-indigo-600', 'border-slate-300');
+                box.classList.remove('bg-indigo-600');
+                check.classList.add('hidden');
+                inputBox.classList.add('hidden');
+            }
+            updateProgress();
+        }
+
+        function updateProgress() {
+            let completed = 0;
+            const totalRequired = 7;
+
+            if (document.getElementById('fixed_intro').value.trim().length > 5) completed++;
+            if (selectedMotivation !== null && document.getElementById(`mot_textarea_${selectedMotivation}`).value.trim().length > 5) completed++;
+            if (selectedIdentity !== null && document.getElementById(`id_textarea_${selectedIdentity}`).value.trim().length > 5) completed++;
+            
+            let expFilled = false;
+            selectedExperiences.forEach(idx => {
+                if (document.getElementById(`exp_textarea_${idx}`).value.trim().length > 5) expFilled = true;
+            });
+            if (expFilled) completed++;
+
+            if (document.getElementById('fixed_future').value.trim().length > 5) completed++;
+            if (document.getElementById('fixed_promise').value.trim().length > 5) completed++;
+            if (document.getElementById('fixed_cta').value.trim().length > 5) completed++;
+
+            const pct = Math.round((completed / totalRequired) * 100);
+            document.getElementById('progressBar').style.width = `${pct}%`;
+        }
+
+        function generateFinalScript() {
+            const errors = [];
+            const intro = document.getElementById('fixed_intro').value.trim();
+            const future = document.getElementById('fixed_future').value.trim();
+            const promise = document.getElementById('fixed_promise').value.trim();
+            const cta = document.getElementById('fixed_cta').value.trim();
+
+            if (!intro) errors.push("Passo 1: Presentazione iniziale mancante.");
+            
+            let motText = "";
+            if (selectedMotivation === null) {
+                errors.push("Passo 2: Scegli una domanda sulla tua motivazione.");
+            } else {
+                motText = document.getElementById(`mot_textarea_${selectedMotivation}`).value.trim();
+                if (!motText) errors.push("Passo 2: Scrivi la risposta alla domanda sulla motivazione che hai scelto.");
+            }
+
+            let idText = "";
+            if (selectedIdentity === null) {
+                errors.push("Passo 3: Scegli una domanda sul tuo carattere.");
+            } else {
+                idText = document.getElementById(`id_textarea_${selectedIdentity}`).value.trim();
+                if (!idText) errors.push("Passo 3: Scrivi la risposta alla domanda sul carattere che hai scelto.");
+            }
+
+            let expTexts = [];
+            if (selectedExperiences.length === 0) {
+                errors.push("Passo 4: Scegli almeno 1 domanda sulle tue esperienze o passioni.");
+            } else {
+                selectedExperiences.forEach(idx => {
+                    const t = document.getElementById(`exp_textarea_${idx}`).value.trim();
+                    if (t) expTexts.push(t);
+                });
+                if (expTexts.length === 0) errors.push("Passo 4: Scrivi la risposta alle domande sulle esperienze che hai selezionato.");
+            }
+
+            if (!future) errors.push("Passo 5: Racconta come ti vedi tra 3 o 4 anni.");
+            if (!promise) errors.push("Passo 5: Spiega perché l'azienda dovrebbe scegliere te.");
+            if (!cta) errors.push("Passo 5: Scrivi il saluto finale con la richiesta di colloquio/stage.");
+
+            const alertBox = document.getElementById('validationAlert');
+            const alertList = document.getElementById('validationList');
+
+            if (errors.length > 0) {
+                alertList.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
+                alertBox.classList.remove('hidden');
+                alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            alertBox.classList.add('hidden');
+
+            const scriptParts = [
+                intro,
+                motText,
+                idText,
+                ...expTexts,
+                future,
+                promise,
+                cta
+            ];
+
+            const finalOutput = document.getElementById('finalScriptText');
+            finalOutput.innerText = scriptParts.join('\n\n');
+
+            const outContainer = document.getElementById('scriptOutputContainer');
+            outContainer.classList.remove('hidden');
+            outContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('finalScriptText').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerHTML = `<span>✅ Copiato!</span>`;
+                btn.classList.replace('bg-white/10', 'bg-emerald-600');
+                setTimeout(() => {
+                    btn.innerHTML = `<span>📋 Copia Testo</span>`;
+                    btn.classList.replace('bg-emerald-600', 'bg-white/10');
+                }, 2500);
+            });
+        }
+
+        function resetForm() {
+            if (confirm("Vuoi davvero cancellare tutte le risposte e ricominciare da capo?")) {
+                document.getElementById('fixed_intro').value = '';
+                document.getElementById('fixed_future').value = '';
+                document.getElementById('fixed_promise').value = '';
+                document.getElementById('fixed_cta').value = '';
+                selectedMotivation = null;
+                selectedIdentity = null;
+                selectedExperiences = [];
+                document.getElementById('scriptOutputContainer').classList.add('hidden');
+                document.getElementById('validationAlert').classList.add('hidden');
+                initApp();
+                updateProgress();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // Avvio iniziale
+        initApp();
+    </script>
+</body>
+</html>
