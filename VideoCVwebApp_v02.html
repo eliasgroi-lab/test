@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video CV Builder - Città dei Mestieri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #f0f4ff 0%, #f8fafc 100%);
+        }
+        .step-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .question-option {
+            transition: all 0.2s ease;
+        }
+        .question-option.selected {
+            border-color: #4f46e5;
+            background-color: #f5f3ff;
+        }
+        textarea {
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+        .starter-chip {
+            transition: all 0.15s ease;
+        }
+        .starter-chip:hover {
+            background-color: #e0e7ff;
+            border-color: #6366f1;
+            color: #3730a3;
+        }
+        .starter-chip:active {
+            transform: scale(0.96);
+        }
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+        }
+        .recording-mic {
+            background-color: #ef4444 !important;
+            color: white !important;
+            border-color: #dc2626 !important;
+            animation: pulse-red 1.5s infinite;
+        }
+
+        /* Logo Città dei Mestieri CSS Replica */
+        .cdm-logo {
+            width: 54px;
+            background-color: #e30613;
+            color: white;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 6px rgba(227, 6, 19, 0.25);
+            border-radius: 2px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .cdm-top {
+            padding: 10px 4px 4px 4px;
+            text-align: right;
+            border-bottom: 2px solid white;
+            line-height: 0.95;
+        }
+        .cdm-bottom {
+            padding: 4px 4px 10px 4px;
+            text-align: right;
+            line-height: 1.05;
+        }
+
+        /* Stampa */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            #scriptOutputContainer {
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            #scriptCard {
+                background: white !important;
+                color: black !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+            }
+            #finalScriptText {
+                background: transparent !important;
+                color: black !important;
+                border: none !important;
+                font-size: 15pt !important;
+                line-height: 1.9 !important;
+                padding: 0 !important;
+                white-space: pre-wrap !important;
+            }
+            #print-header, #print-checklist {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between">
+
+    <div>
+        <!-- Header Istituzionale con Logo CDM -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+            <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3.5">
+                    <!-- Logo CDM Vettoriale Integrato -->
+                    <div class="cdm-logo select-none" title="Città dei Mestieri della Svizzera italiana">
+                        <div class="cdm-top">
+                            <div class="font-extrabold text-[11px] tracking-tight">città</div>
+                            <div class="font-bold text-[7.5px] tracking-tighter">dei mestieri</div>
+                        </div>
+                        <div class="cdm-bottom">
+                            <div class="font-medium text-[6.5px]">della</div>
+                            <div class="font-medium text-[6px] tracking-tighter">Svizzera italiana</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="text-lg md:text-xl font-extrabold text-slate-900 tracking-tight">Video CV Builder</h1>
+                            <span class="bg-red-50 text-red-600 border border-red-200 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase hidden sm:inline-block">Edizione SEMO</span>
+                        </div>
+                        <p class="text-xs text-slate-500 font-medium">Crea il tuo copione passo dopo passo</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="text-right hidden md:block">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <span id="saveIndicator" class="text-[11px] text-emerald-600 font-semibold opacity-0 transition-opacity duration-300">✓ Salvato</span>
+                            <span class="text-xs font-semibold text-indigo-600 uppercase tracking-wider">Progresso</span>
+                        </div>
+                        <div class="w-32 h-2 bg-slate-100 rounded-full mt-1 overflow-hidden">
+                            <div id="progressBar" class="h-full bg-indigo-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <button onclick="toggleViewMode()" id="viewModeBtn" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-lg transition" title="Passa dalla vista a passi alla vista completa">
+                        Vista Completa
+                    </button>
+                    <button onclick="resetForm()" class="text-xs text-slate-400 hover:text-rose-600 font-medium px-2 py-1.5 rounded transition">
+                        Ricomincia
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Barra di stato Dettatura Vocale Live (visibile solo mentre si parla) -->
+        <div id="liveSpeechBanner" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-indigo-500 flex items-center gap-3 max-w-lg w-[92%] no-print">
+            <span class="w-3 h-3 rounded-full bg-red-500 animate-ping shrink-0"></span>
+            <div class="flex-1 text-xs md:text-sm">
+                <span class="font-bold text-indigo-300 block">🎤 Ti sto ascoltando... Parla pure!</span>
+                <span id="liveSpeechPreview" class="italic text-slate-300">In attesa della voce...</span>
+            </div>
+            <button onclick="stopDictationManual()" class="bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shrink-0">
+                Ferma
+            </button>
+        </div>
+
+        <main class="max-w-3xl mx-auto px-4 mt-6 space-y-6 pb-16">
+
+            <!-- Selettore Settore Professionale SWISSDOC (Miglioria 5) -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-indigo-100 no-print">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl mt-0.5">🧭</span>
+                        <div>
+                            <label for="swissdocSelect" class="font-bold text-slate-900 text-sm md:text-base block">
+                                In quale settore professionale Swissdoc ti stai candidando?
+                            </label>
+                            <p class="text-xs text-slate-500">Scegli il tuo settore per personalizzare gli esempi di aiuto nelle domande qui sotto.</p>
+                        </div>
+                    </div>
+                </div>
+                <select id="swissdocSelect" onchange="updateSectorExamples()" class="mt-3 w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-3 font-semibold">
+                    <option value="0.000.0.0">-- Scegli il tuo settore professionale (Swissdoc) --</option>
+                    <option value="0.100.0.0">0.100.0.0 - NATURA (es. Giardiniere, Fiorista, Selvicoltore, Agricoltore)</option>
+                    <option value="0.200.0.0">0.200.0.0 - ALIMENTAZIONE, INDUSTRIA ALBERGHIERA, ECONOMIA DOMESTICA (es. Cuoco, Panettiere, Ristorazione)</option>
+                    <option value="0.300.0.0">0.300.0.0 - INDUSTRIA TESSILE, ABBIGLIAMENTO, CURE DEL CORPO (es. Parrucchiere, Estetista, Creatore tessile)</option>
+                    <option value="0.400.0.0">0.400.0.0 - COSTRUZIONE (es. Muratore, Pittore, Elettricista, Falegname, Installatore)</option>
+                    <option value="0.500.0.0">0.500.0.0 - INDUSTRIA, TECNICA, INFORMATICA (es. Informatico, Meccanico d'auto, Polimeccanico)</option>
+                    <option value="0.600.0.0">0.600.0.0 - ECONOMIA E COMMERCIO, AMMINISTRAZIONE, TRASPORTI, TURISMO (es. Impiegato di commercio, Vendita, Logistica)</option>
+                    <option value="0.700.0.0">0.700.0.0 - FORMAZIONE, SPORT, SALUTE, ATTIVITÀ SOCIALE (es. Operatore sociosanitario OSS, Operatore socioassistenziale, Studio medico)</option>
+                    <option value="0.800.0.0">0.800.0.0 - MEDIA, ARTE, SCIENZE UMANE (es. Grafico, Mediamatico, Poligrafo, Fotografo)</option>
+                </select>
+            </div>
+
+            <!-- Barra Navigazione Passi (Wizard - Miglioria 7) -->
+            <div id="wizardNav" class="flex items-center justify-between bg-white p-2 rounded-2xl shadow-sm border border-slate-200 no-print overflow-x-auto gap-1">
+                <button onclick="goToStep(1)" id="tab_step_1" class="step-tab flex-1 py-2 px-3 rounded-xl font-bold text-xs md:text-sm transition whitespace-nowrap bg-indigo-600 text-white">1. Chi sono</button>
+                <button onclick="goToStep(2)" id="tab_step_2" class="step-tab flex-1 py-2 px-3 rounded-xl font-bold text-xs md:text-sm transition whitespace-nowrap text-slate-500 hover:bg-slate-100">2. Motivazione</button>
+                <button onclick="goToStep(3)" id="tab_step_3" class="step-tab flex-1 py-2 px-3 rounded-xl font-bold text-xs md:text-sm transition whitespace-nowrap text-slate-500 hover:bg-slate-100">3. Carattere</button>
+                <button onclick="goToStep(4)" id="tab_step_4" class="step-tab flex-1 py-2 px-3 rounded-xl font-bold text-xs md:text-sm transition whitespace-nowrap text-slate-500 hover:bg-slate-100">4. Esperienze</button>
+                <button onclick="goToStep(5)" id="tab_step_5" class="step-tab flex-1 py-2 px-3 rounded-xl font-bold text-xs md:text-sm transition whitespace-nowrap text-slate-500 hover:bg-slate-100">5. Finale</button>
+            </div>
+
+            <!-- SEZIONE 1: APERTURA (FISSA) -->
+            <section id="step_1" class="step-card bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200/80 no-print">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="bg-rose-100 text-rose-700 font-extrabold px-3 py-1 rounded-lg text-xs uppercase tracking-wider">Passo 1 • Obbligatorio</span>
+                    <h3 class="text-xl font-bold text-slate-900">Io... Mi presento!</h3>
+                </div>
+                <p class="text-slate-500 text-sm mb-4">Questa è la prima frase del tuo video. Clicca sui bottoncini qui sotto per inserire l'inizio della frase, oppure usa il microfono per dettare!</p>
+                
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                        <label class="block font-semibold text-slate-800 text-sm md:text-base" for="fixed_intro">
+                            📌 Chi sei, quanti anni hai, da dove vieni e per quale professione ti stai candidando?
+                        </label>
+                        <button type="button" onclick="toggleDictation('fixed_intro', this)" class="shrink-0 bg-white hover:bg-indigo-50 text-slate-700 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition" title="Detta la risposta con la voce">
+                            🎤 <span>Detta a voce</span>
+                        </button>
+                    </div>
+
+                    <textarea id="fixed_intro" rows="3" oninput="saveAndProgress()" class="w-full rounded-xl border border-slate-300 p-3 text-slate-700 text-sm md:text-base bg-white" placeholder="Es: Buongiorno! Mi chiamo Marco, ho 16 anni e vivo a Bellinzona. Con questo video mi candido per un posto di apprendistato come..."></textarea>
+
+                    <!-- Starter Pack SEMO (Miglioria 2) -->
+                    <div class="mt-3">
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">💡 Aiuto per iniziare (Clicca per inserire nel testo):</span>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button type="button" onclick="insertStarter('fixed_intro', 'Ciao! Mi chiamo ..., ho ... anni e mi candido come apprendista ... ')" class="starter-chip text-xs bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg font-medium">+ "Ciao! Mi chiamo..."</button>
+                            <button type="button" onclick="insertStarter('fixed_intro', 'Un oggetto che mi rappresenta è ... perché ... ')" class="starter-chip text-xs bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg font-medium">+ "Un oggetto che mi rappresenta è..."</button>
+                            <button type="button" onclick="insertStarter('fixed_intro', 'Come disse una volta ..., io credo che ... ')" class="starter-chip text-xs bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg font-medium">+ "Come disse una volta..."</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end wizard-controls">
+                    <button onclick="goToStep(2)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition flex items-center gap-2 text-sm">
+                        Vai al Passo 2 (Motivazione) ➔
+                    </button>
+                </div>
+            </section>
+
+            <!-- SEZIONE 2: LA MOTIVAZIONE (SCELTA 1 SU 5) -->
+            <section id="step_2" class="step-card hidden bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200/80 no-print">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="bg-amber-100 text-amber-800 font-extrabold px-3 py-1 rounded-lg text-xs uppercase tracking-wider">Passo 2 • Scegline 1</span>
+                    <h3 class="text-xl font-bold text-slate-900">Motivi della scelta: Perché questo lavoro?</h3>
+                </div>
+                <p class="text-slate-500 text-sm mb-5">Clicca sulla domanda che ti ispira di più e usa gli spunti per raccontare la tua scelta.</p>
+
+                <div id="motivation_list" class="space-y-3"></div>
+
+                <div class="mt-6 flex justify-between wizard-controls">
+                    <button onclick="goToStep(1)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-5 rounded-xl transition text-sm">
+                        ⬅ Indietro
+                    </button>
+                    <button onclick="goToStep(3)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition flex items-center gap-2 text-sm">
+                        Vai al Passo 3 (Carattere) ➔
+                    </button>
+                </div>
+            </section>
+
+            <!-- SEZIONE 3: IDENTITÀ E CARATTERE (SCELTA 1 SU 5) -->
+            <section id="step_3" class="step-card hidden bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200/80 no-print">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="bg-emerald-100 text-emerald-800 font-extrabold px-3 py-1 rounded-lg text-xs uppercase tracking-wider">Passo 3 • Scegline 1</span>
+                    <h3 class="text-xl font-bold text-slate-900">Caratteristiche, Competenze e Percorso</h3>
+                </div>
+                <p class="text-slate-500 text-sm mb-4">Fai capire al datore di lavoro chi sei, cosa sai fare o cosa hai imparato anche da un cambio di strada.</p>
+
+                <!-- Connettivo (Miglioria 6) -->
+                <div class="mb-4 bg-emerald-50/70 border border-emerald-200 p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <label class="text-xs font-bold text-emerald-900">🔗 Parola-ponte per legare il discorso (opzionale):</label>
+                    <select id="conn_identity" onchange="saveAndProgress()" class="bg-white border border-emerald-300 text-slate-700 text-xs rounded-lg p-1.5 font-medium">
+                        <option value="">(Nessuna parola-ponte)</option>
+                        <option value="Parlando del mio carattere, ">Parlando del mio carattere, ...</option>
+                        <option value="Per farmi conoscere meglio come persona, ">Per farmi conoscere meglio come persona, ...</option>
+                        <option value="Dal punto di vista personale, ">Dal punto di vista personale, ...</option>
+                    </select>
+                </div>
+
+                <div id="identity_list" class="space-y-3"></div>
+
+                <div class="mt-6 flex justify-between wizard-controls">
+                    <button onclick="goToStep(2)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-5 rounded-xl transition text-sm">
+                        ⬅ Indietro
+                    </button>
+                    <button onclick="goToStep(4)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition flex items-center gap-2 text-sm">
+                        Vai al Passo 4 (Esperienze) ➔
+                    </button>
+                </div>
+            </section>
+
+            <!-- SEZIONE 4: VALORE AGGIUNTO / ESPERIENZE (SCELTA 1 O 2 SU 6) -->
+            <section id="step_4" class="step-card hidden bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200/80 no-print">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="bg-purple-100 text-purple-800 font-extrabold px-3 py-1 rounded-lg text-xs uppercase tracking-wider">Passo 4 • Scegline 1 o 2</span>
+                    <h3 class="text-xl font-bold text-slate-900">Stage, Tempo Libero e Lingue</h3>
+                </div>
+                <p class="text-slate-500 text-sm mb-4">Scegli <strong>una oppure due domande</strong> per raccontare cosa hai già sperimentato nella pratica:</p>
+
+                <!-- Connettivo (Miglioria 6) -->
+                <div class="mb-4 bg-purple-50/70 border border-purple-200 p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <label class="text-xs font-bold text-purple-900">🔗 Parola-ponte per legare il discorso (opzionale):</label>
+                    <select id="conn_experience" onchange="saveAndProgress()" class="bg-white border border-purple-300 text-slate-700 text-xs rounded-lg p-1.5 font-medium">
+                        <option value="">(Nessuna parola-ponte)</option>
+                        <option value="Nella pratica, ">Nella pratica, ...</option>
+                        <option value="Fuori dalla scuola, ">Fuori dalla scuola, ...</option>
+                        <option value="Inoltre, grazie alle mie esperienze, ">Inoltre, grazie alle mie esperienze, ...</option>
+                    </select>
+                </div>
+
+                <div id="experience_list" class="space-y-3"></div>
+
+                <div class="mt-6 flex justify-between wizard-controls">
+                    <button onclick="goToStep(3)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-5 rounded-xl transition text-sm">
+                        ⬅ Indietro
+                    </button>
+                    <button onclick="goToStep(5)" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-6 rounded-xl shadow transition flex items-center gap-2 text-sm">
+                        Vai al Passo 5 (Il Finale) ➔
+                    </button>
+                </div>
+            </section>
+
+            <!-- SEZIONE 5: CHIUSURA E CALL TO ACTION (FISSA) -->
+            <section id="step_5" class="step-card hidden bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-200/80 no-print">
+                <div class="flex items-center gap-3 mb-3">
+                    <span class="bg-rose-100 text-rose-700 font-extrabold px-3 py-1 rounded-lg text-xs uppercase tracking-wider">Passo 5 • Obbligatorio</span>
+                    <h3 class="text-xl font-bold text-slate-900">Futuro, Perché scegliere me e Saluti</h3>
+                </div>
+                <p class="text-slate-500 text-sm mb-6">Lascia il segno! Completa questi ultimi tre punti per chiudere il tuo Video CV.</p>
+
+                <div class="space-y-5">
+                    <!-- 5.1 Futuro -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <label class="block font-semibold text-slate-800 text-sm md:text-base" for="fixed_future">
+                                🚀 1. Futuro: Come ti vedi tra 3 o 4 anni, dopo l'apprendistato?
+                            </label>
+                            <button type="button" onclick="toggleDictation('fixed_future', this)" class="shrink-0 bg-white hover:bg-indigo-50 text-slate-700 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+                                🎤 <span>Detta a voce</span>
+                            </button>
+                        </div>
+                        <textarea id="fixed_future" rows="2" oninput="saveAndProgress()" class="w-full rounded-xl border border-slate-300 p-3 text-slate-700 text-sm md:text-base bg-white" placeholder="Es: Dopo l'apprendistato il mio obiettivo è avere il mio attestato federale in mano ed essere autonomo..."></textarea>
+                        <div class="mt-2 flex flex-wrap gap-1.5">
+                            <button type="button" onclick="insertStarter('fixed_future', 'Dopo l\'apprendistato il mio obiettivo è ... ')" class="starter-chip text-xs bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg font-medium">+ "Dopo l'apprendistato il mio obiettivo è..."</button>
+                            <button type="button" onclick="insertStarter('fixed_future', 'Tra 4 o 5 anni mi vedo ... ')" class="starter-chip text-xs bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg font-medium">+ "Tra 4 o 5 anni mi vedo..."</button>
+                        </div>
+                    </div>
+
+                    <!-- 5.2 Perché scegliere me -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <label class="block font-semibold text-slate-800 text-sm md:text-base" for="fixed_promise">
+                                🤝 2. Perché scegliere me: Quali sono i tuoi punti forti (atout) per l'azienda?
+                            </label>
+                            <button type="button" onclick="toggleDictation('fixed_promise', this)" class="shrink-0 bg-white hover:bg-indigo-50 text-slate-700 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+                                🎤 <span>Detta a voce</span>
+                            </button>
+                        </div>
+                        <textarea id="fixed_promise" rows="2" oninput="saveAndProgress()" class="w-full rounded-xl border border-slate-300 p-3 text-slate-700 text-sm md:text-base bg-white" placeholder="Es: Sceglietemi perché sono puntuale, imparo in fretta e ho tanta voglia di mettermi in gioco..."></textarea>
+                        <div class="mt-2 flex flex-wrap gap-1.5">
+                            <button type="button" onclick="insertStarter('fixed_promise', 'Sceglietemi perché il mio punto forte è ... ')" class="starter-chip text-xs bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg font-medium">+ "Sceglietemi perché il mio punto forte è..."</button>
+                            <button type="button" onclick="insertStarter('fixed_promise', 'La mia promessa per la vostra azienda è ... ')" class="starter-chip text-xs bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg font-medium">+ "La mia promessa per la vostra azienda è..."</button>
+                        </div>
+                    </div>
+
+                    <!-- 5.3 Saluti e Contatti -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div class="flex items-start justify-between gap-2 mb-2">
+                            <label class="block font-semibold text-slate-800 text-sm md:text-base" for="fixed_cta">
+                                👋 3. Contatti e Saluti: Ringrazia e chiedi un colloquio o uno stage! (Bonus: puoi salutare anche in un'altra lingua)
+                            </label>
+                            <button type="button" onclick="toggleDictation('fixed_cta', this)" class="shrink-0 bg-white hover:bg-indigo-50 text-slate-700 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+                                🎤 <span>Detta a voce</span>
+                            </button>
+                        </div>
+                        <textarea id="fixed_cta" rows="2" oninput="saveAndProgress()" class="w-full rounded-xl border border-slate-300 p-3 text-slate-700 text-sm md:text-base bg-white" placeholder="Es: Vi ringrazio per il vostro interesse! Mi trovate ai contatti nel mio CV per un colloquio o uno stage di prova. A presto!"></textarea>
+                        <div class="mt-2 flex flex-wrap gap-1.5">
+                            <button type="button" onclick="insertStarter('fixed_cta', 'Vi ringrazio per l\'attenzione! Sarei felice di fare uno stage di prova o un colloquio. Mi trovate ai miei contatti! ')" class="starter-chip text-xs bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg font-medium">+ "Vi ringrazio! Sarei felice di fare uno stage..."</button>
+                            <button type="button" onclick="insertStarter('fixed_cta', 'Grazie per il tuo interesse e a presto! ')" class="starter-chip text-xs bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg font-medium">+ "Grazie per il tuo interesse e a presto!"</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-between items-center wizard-controls">
+                    <button onclick="goToStep(4)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-5 rounded-xl transition text-sm">
+                        ⬅ Indietro
+                    </button>
+                </div>
+            </section>
+
+            <!-- Box Avviso Errori -->
+            <div id="validationAlert" class="hidden bg-rose-50 border-2 border-rose-200 rounded-2xl p-5 text-rose-800 flex items-start gap-3 no-print">
+                <span class="text-2xl">⚠️</span>
+                <div>
+                    <h4 class="font-bold">Quasi pronto! Completa ancora questi passaggi:</h4>
+                    <ul id="validationList" class="list-disc list-inside text-sm mt-2 space-y-1 text-rose-700"></ul>
+                </div>
+            </div>
+
+            <!-- Pulsante Genera Copione -->
+            <div class="pt-2 text-center no-print">
+                <button onclick="generateFinalScript()" class="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-extrabold text-lg py-4 px-10 rounded-2xl shadow-xl shadow-indigo-500/30 transform transition active:scale-95 flex items-center justify-center gap-3 mx-auto">
+                    <span>✨ Genera il tuo Copione Finale</span>
+                </button>
+            </div>
+
+            <!-- OUTPUT DEL COPIONE (Con layout bottoni anti-taglio su 2 righe) -->
+            <div id="scriptOutputContainer" class="hidden pt-4">
+                
+                <!-- Intestazione visibile SOLO su carta stampata -->
+                <div id="print-header" class="hidden mb-6 border-b-2 border-black pb-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h1 class="text-2xl font-bold">Il mio Copione per il Video CV</h1>
+                            <p id="print-sector-label" class="text-sm text-gray-700 font-semibold mt-0.5"></p>
+                        </div>
+                        <div class="text-right text-xs text-gray-600">
+                            Città dei Mestieri della Svizzera italiana<br>Semestre di Motivazione (SEMO)
+                        </div>
+                    </div>
+                </div>
+
+                <div id="scriptCard" class="bg-slate-900 text-white rounded-3xl p-6 md:p-8 shadow-2xl border border-slate-700 relative">
+                    
+                    <!-- Intestazione + Tachimetro -->
+                    <div class="border-b border-slate-700 pb-5 mb-6 no-print">
+                        <div class="flex flex-wrap items-center gap-2 mb-2">
+                            <span class="bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Pronto</span>
+                            <span id="readingTimeBadge" class="bg-indigo-500/20 text-indigo-300 text-xs font-bold px-3 py-1 rounded-full">⏱️ Calcolo durata...</span>
+                        </div>
+                        <h3 class="text-2xl font-extrabold">Il tuo Copione Completo</h3>
+                        <p class="text-slate-400 text-xs mt-1">Puoi cliccare dentro il testo qui sotto per correggere o cambiare qualsiasi parola prima di inviarlo o stamparlo.</p>
+
+                        <!-- GRIGLIA PULSANTI ANTI-TAGLIO (2 Righe) -->
+                        <div class="mt-5 space-y-3">
+                            <!-- Riga 1: Pulsante Principale Teleprompter -->
+                            <button onclick="openTeleprompter()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-3 px-5 rounded-xl transition flex items-center justify-center gap-2 text-sm md:text-base shadow-lg shadow-amber-500/20">
+                                <span>🎥 Avvia Gobbo Elettronico (Teleprompter a tutto schermo)</span>
+                            </button>
+
+                            <!-- Riga 2: 3 Colonne ben distribuite (Invia Mail, Copia, Stampa) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <button onclick="sendEmailToTeacher()" id="emailBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs md:text-sm shadow-md">
+                                    <span>✉️ Invia a Elia Sgroi</span>
+                                </button>
+                                <button onclick="copyToClipboard()" id="copyBtn" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs md:text-sm border border-slate-600">
+                                    <span>📋 Copia Testo</span>
+                                </button>
+                                <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs md:text-sm shadow-md">
+                                    <span>🖨️ Stampa Copione</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Messaggio di conferma invio email -->
+                        <div id="emailConfirmNote" class="hidden mt-3 bg-indigo-950 border border-indigo-700 text-indigo-200 text-xs p-3 rounded-xl">
+                            ✅ <strong>Finestra di posta aperta!</strong> Abbiamo anche copiato automaticamente il testo negli appunti: se usi la Webmail sul browser, ti basta fare <strong>Incolla (Ctrl+V)</strong> nel messaggio per <strong>elia.sgroi@edu.ti.ch</strong>.
+                        </div>
+                    </div>
+
+                    <!-- Testo del copione editabile -->
+                    <div id="finalScriptText" oninput="updateReadingTime()" contenteditable="true" class="bg-slate-800/70 rounded-2xl p-6 text-slate-100 text-lg leading-relaxed whitespace-pre-line border border-slate-700 focus:outline-none focus:border-indigo-400"></div>
+
+                    <!-- Checklist Pre-Registrazione a schermo (Miglioria 9) -->
+                    <div class="mt-6 bg-slate-800/90 border border-slate-700 rounded-2xl p-5 no-print">
+                        <h4 class="font-bold text-amber-400 text-sm uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <span>🎬</span> Checklist del Regista (Controlla prima di registrare!)
+                        </h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs md:text-sm text-slate-200">
+                            <label class="flex items-center gap-2.5 cursor-pointer bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/80">
+                                <input type="checkbox" class="w-4 h-4 rounded text-emerald-500 focus:ring-0">
+                                <span>💡 Ho la luce di fronte a me (non dietro!)</span>
+                            </label>
+                            <label class="flex items-center gap-2.5 cursor-pointer bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/80">
+                                <input type="checkbox" class="w-4 h-4 rounded text-emerald-500 focus:ring-0">
+                                <span>📱 Telefono fermo all'altezza degli occhi</span>
+                            </label>
+                            <label class="flex items-center gap-2.5 cursor-pointer bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/80">
+                                <input type="checkbox" class="w-4 h-4 rounded text-emerald-500 focus:ring-0">
+                                <span>🤫 C'è silenzio intorno a me</span>
+                            </label>
+                            <label class="flex items-center gap-2.5 cursor-pointer bg-slate-900/60 p-2.5 rounded-xl border border-slate-700/80">
+                                <input type="checkbox" class="w-4 h-4 rounded text-emerald-500 focus:ring-0">
+                                <span>👕 Abbigliamento curato e adatto al lavoro</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Checklist per il foglio stampato -->
+                    <div id="print-checklist" class="hidden mt-8 pt-4 border-t border-gray-400 text-black text-xs">
+                        <p class="font-bold mb-2">PRIMA DI REGISTRARE CONTROLLA QUESTI 4 PUNTI:</p>
+                        <p>[  ] Luce di fronte al viso &nbsp;&nbsp; [  ] Telefono fermo ad altezza occhi &nbsp;&nbsp; [  ] Stanza silenziosa &nbsp;&nbsp; [  ] Abbigliamento adatto e sorriso!</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL TELEPROMPTER / GOBBO ELETTRONICO (Miglioria 4) -->
+    <div id="teleprompterModal" class="fixed inset-0 bg-black z-50 hidden flex-col justify-between p-4 md:p-8 text-white no-print">
+        <div class="flex flex-wrap items-center justify-between gap-4 bg-zinc-900 p-4 rounded-2xl border border-zinc-700">
+            <div class="flex items-center gap-3">
+                <span class="text-xl">🎥</span>
+                <div>
+                    <h4 class="font-bold text-sm md:text-base">Modalità Teleprompter (Gobbo)</h4>
+                    <p class="text-xs text-zinc-400">Guarda verso la fotocamera mentre leggi!</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 text-xs">
+                    <span>Velocità:</span>
+                    <input type="range" id="prompterSpeed" min="1" max="5" value="2" class="w-24 accent-amber-500">
+                </div>
+                <button onclick="togglePrompterScroll()" id="prompterPlayBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs md:text-sm">
+                    ▶ Avvia Scorrimento
+                </button>
+                <button onclick="closeTeleprompter()" class="bg-zinc-700 hover:bg-zinc-600 text-white font-bold px-4 py-2 rounded-xl text-xs md:text-sm">
+                    ✕ Chiudi
+                </button>
+            </div>
+        </div>
+
+        <div id="prompterViewport" class="flex-1 overflow-y-auto my-6 px-4 md:px-20 text-center scroll-smooth">
+            <div class="h-24"></div>
+            <div id="prompterText" class="text-3xl md:text-5xl font-bold leading-snug text-amber-300 max-w-4xl mx-auto whitespace-pre-line"></div>
+            <div class="h-96"></div>
+        </div>
+    </div>
+
+    <!-- MODAL AIUTO DETTATURA VOCALE (Se file locale o Firefox) -->
+    <div id="dictationHelpModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="text-2xl bg-indigo-100 p-2 rounded-xl">🎤</span>
+                <h4 class="font-extrabold text-lg text-slate-900">Come dettare con la voce sul PC</h4>
+            </div>
+            <p id="dictationHelpReason" class="text-xs text-slate-500 mb-4"></p>
+            <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-sm text-slate-800 space-y-2">
+                <p class="font-bold text-indigo-900">💡 Trucco rapido su Windows (Funziona sempre!):</p>
+                <ol class="list-decimal list-inside space-y-1.5 text-xs md:text-sm">
+                    <li>Clicca dentro la casella di testo dove vuoi scrivere.</li>
+                    <li>Premi insieme sulla tastiera i tasti <kbd class="bg-white border border-slate-300 px-2 py-0.5 rounded font-bold shadow-sm">Windows ⊞</kbd> + <kbd class="bg-white border border-slate-300 px-2 py-0.5 rounded font-bold shadow-sm">H</kbd></li>
+                    <li>Parla al microfono: il PC scriverà tutto da solo!</li>
+                </ol>
+            </div>
+            <div class="mt-5 text-right">
+                <button onclick="closeDictationHelp()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-5 rounded-xl text-sm">
+                    Ho capito, grazie!
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER CREDITI -->
+    <footer class="bg-white border-t border-slate-200 py-4 px-4 text-center text-xs text-slate-500 no-print">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <span class="font-semibold text-slate-700">Semestre di Motivazione (SEMO) • Città dei Mestieri della Svizzera italiana</span>
+            <span>Ideato da <strong>Elia Sgroi</strong> con <strong>Gemini</strong> ✨</span>
+        </div>
+    </footer>
+
+    <script>
+        // Mappa Esempi Dinamici per Settori Swissdoc (Miglioria 5)
+        const sectorPlaceholders = {
+            "0.000.0.0": "Es: Buongiorno! Mi chiamo Marco, ho 16 anni e vivo a Bellinzona. Con questo video mi candido per un posto di apprendistato come...",
+            "0.100.0.0": "Es: Ciao! Mi chiamo Luca, ho 16 anni e vivo a Locarno. Amo lavorare all'aria aperta e mi candido per un apprendistato come Giardiniere paesaggista...",
+            "0.200.0.0": "Es: Buongiorno! Mi chiamo Sofia, ho 16 anni e abito a Lugano. Mi candido con entusiasmo per un posto di apprendistato come Cuoca / Impiegata di ristorazione...",
+            "0.300.0.0": "Es: Ciao! Mi chiamo Elena, ho 16 anni e vivo a Mendrisio. Ho una grande passione per la cura delle persone e mi candido come apprendista Parrucchiera / Estetista...",
+            "0.400.0.0": "Es: Buongiorno! Mi chiamo Matteo, ho 16 anni e vivo a Biasca. Mi piace lavorare con le mani e mi candido per un apprendistato nel settore Costruzione come Elettricista / Falegname...",
+            "0.500.0.0": "Es: Ciao! Mi chiamo Alex, ho 16 anni e vivo a Bellinzona. Sono appassionato di motori e tecnologia e mi candido come apprendista Informatico / Meccanico...",
+            "0.600.0.0": "Es: Buongiorno! Mi chiamo Sara, ho 16 anni e abito a Chiasso. Mi piace il contatto con il pubblico e l'organizzazione, e mi candido come Impiegata di commercio / Vendita...",
+            "0.700.0.0": "Es: Ciao! Mi chiamo Giulia, ho 16 anni e vivo a Lugano. Mi piace aiutare gli altri e mi candido per un apprendistato come Operatrice sociosanitaria (OSS) / Addetta alle cure...",
+            "0.800.0.0": "Es: Buongiorno! Mi chiamo Christian, ho 16 anni e vivo a Locarno. Sono una persona creativa e mi candido per un apprendistato come Mediamatico / Grafico..."
+        };
+
+        // Database Domande + Starter Pack tratti dal PDF SEMO (Miglioria 2)
+        const questionsDB = {
+            motivation: [
+                {
+                    q: "Qual è stato il momento o il percorso che ti ha fatto scegliere questa professione?",
+                    starters: ["Ho scelto questa professione perché...", "Dopo aver valutato diverse professioni, ho capito che...", "Questa passione è nata come un hobby quando..."]
+                },
+                {
+                    q: "Cosa ti affascina di più di questo mestiere e cosa non vedi l'ora di imparare?",
+                    starters: ["Quello che mi affascina di più di questo lavoro è...", "La cosa che mi piacerebbe di più imparare è...", "Nel mio primo giorno di lavoro non vedo l'ora di..."]
+                },
+                {
+                    q: "Perché hai una forte spinta a imparare lavorando sul campo, invece di stare solo sui banchi di scuola?",
+                    starters: ["Preferisco imparare sul campo perché...", "Lavorando nella pratica riesco a dare il meglio perché...", "Vedere il risultato concreto del mio lavoro mi dà..."]
+                },
+                {
+                    q: "C'è qualcuno che conosci o che hai visto lavorare che ti ha ispirato a scegliere questa strada?",
+                    starters: ["A ispirarmi nella scelta di questo mestiere è stato...", "Guardando lavorare i professionisti di questo settore, ammiro...", "Fin da piccolo osservavo..."]
+                },
+                {
+                    q: "Quali passi concreti hai già fatto per avvicinarti a questa professione?",
+                    starters: ["Per scegliere questa professione ho fatto diversi passi, tra cui...", "Mi sono informato molto e ho scoperto che...", "Provare da vicino questo settore mi ha confermato che..."]
+                }
+            ],
+            identity: [
+                {
+                    q: "Quali sono i tuoi punti forti e cosa ti riesce meglio fare?",
+                    starters: ["I miei punti forti sono...", "Quello che so fare meglio è...", "Chi mi conosce bene dice che sono una persona..."]
+                },
+                {
+                    q: "Cosa dicono di te i tuoi amici o le persone che ti stanno vicine?",
+                    starters: ["Le persone e gli amici dicono di me che...", "I miei amici mi chiedono sempre aiuto quando c'è da...", "Della mia compagnia adoro il fatto che il mio ruolo è..."]
+                },
+                {
+                    q: "Hai vissuto una formazione interrotta o un cambio di strada? Cosa ti ha insegnato quell'esperienza?",
+                    starters: ["Ho scelto di cambiare strada perché ho capito che...", "Da una formazione interrotta ho imparato che...", "Superare un momento difficile a scuola mi ha reso più..."]
+                },
+                {
+                    q: "Racconta un episodio concreto che ti ha insegnato qualcosa di importante.",
+                    starters: ["Un episodio che mi ha insegnato molto è stato quando...", "Una volta mi è capitato di dover risolvere...", "Da un errore commesso in passato ho acquisito la consapevolezza che..."]
+                },
+                {
+                    q: "Qual è una cosa che prima pensavi fosse difficilissima e ora invece fai con sicurezza?",
+                    starters: ["Una cosa che ho imparato con l'impegno è...", "All'inizio facevo fatica a ..., ma provando e riprovando ora...", "La sfida più bella che ho affrontato è stata..."]
+                }
+            ],
+            experience: [
+                {
+                    badge: "Stage svolti (9.0)",
+                    text: "Hai già fatto uno stage di orientamento? Cosa ti è piaciuto, cosa hai imparato o quali strumenti hai usato?",
+                    starters: ["Durante il mio stage come ..., il momento migliore è stato...", "In stage ho imparato a utilizzare strumenti come...", "Quello che mi è piaciuto di più del mio stage è stato..."]
+                },
+                {
+                    badge: "Esperienze & Lavoretti (10.0)",
+                    text: "Hai fatto altre esperienze pratiche, piccoli lavoretti o volontariato? Quali sfide hai affrontato?",
+                    starters: ["Un'esperienza lavorativa che ricordo volentieri è...", "Fare piccoli lavoretti mi ha insegnato...", "Sul lavoro ho affrontato la sfida di..."]
+                },
+                {
+                    badge: "Sport & Gruppi (13.0 / 15.0)",
+                    text: "Pratichi uno sport o frequenti un gruppo (es. scout, musica, associazioni)? Cosa hai imparato?",
+                    starters: ["Lo sport che pratico mi ha insegnato...", "Frequentando gli scout / il mio gruppo ho imparato...", "Allenarmi con costanza mi aiuta anche sul lavoro perché..."]
+                },
+                {
+                    badge: "Manualità & Creatività (15.0)",
+                    text: "Nel tempo libero ti piace creare, disegnare, cucinare o aggiustare cose?",
+                    starters: ["Aggiustare cose e capire come funzionano mi appassiona, ad esempio...", "Nel tempo libero mi piace creare...", "Costruire o riparare con le mie mani mi dà soddisfazione perché..."]
+                },
+                {
+                    badge: "Tempo Libero & Gaming (16.0)",
+                    text: "Come ti piace occupare il tempo libero (tecnologia, gaming, letture, passioni) e quali abilità ti dà?",
+                    starters: ["Il tempo libero mi piace occuparlo...", "La mia passione per l'informatica / i videogiochi mi ha insegnato...", "Un libro, un film o un personaggio che mi ispira è..."]
+                },
+                {
+                    badge: "Lingue & Soggiorni (6.0)",
+                    text: "Conosci altre lingue o hai fatto vacanze/esperienze fuori dal Ticino dove le hai usate?",
+                    starters: ["Oltre all'italiano parlo anche ..., e l'ho utilizzato quando...", "Un episodio in cui ho usato le lingue è stato...", "Conoscere più lingue per me è un vantaggio perché..."]
+                }
+            ]
+        };
+
+        // Stato dell'applicazione
+        let selectedMotivation = null;
+        let selectedIdentity = null;
+        let selectedExperiences = [];
+        let currentWizardStep = 1;
+        let isWizardMode = true;
+        let prompterInterval = null;
+
+        // Variabili Dettatura Vocale Avanzata
+        let activeRecognition = null;
+        let activeMicButton = null;
+        let activeTextareaId = null;
+
+        function initApp() {
+            renderSingleChoice('motivation_list', questionsDB.motivation, 'mot');
+            renderSingleChoice('identity_list', questionsDB.identity, 'id');
+            renderMultiChoice('experience_list', questionsDB.experience, 'exp');
+            loadFromLocalStorage();
+            updateProgress();
+        }
+
+        // Renderizza blocchi a scelta singola con Starter Pack e Microfono
+        function renderSingleChoice(containerId, items, prefix) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            items.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.id = `${prefix}_card_${idx}`;
+                div.className = "question-option border-2 border-slate-200 rounded-xl p-4 cursor-pointer hover:border-indigo-300 bg-white";
+                div.onclick = () => selectSingleOption(prefix, idx, items.length);
+                
+                const startersHtml = item.starters.map(s => 
+                    `<button type="button" onclick="insertStarter('${prefix}_textarea_${idx}', '${s.replace(/'/g, "\\'")} ')" class="starter-chip text-xs bg-slate-50 border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg font-medium text-left">+ "${s}"</button>`
+                ).join('');
+
+                div.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div id="${prefix}_circle_${idx}" class="w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center mt-0.5 shrink-0 transition">
+                            <div class="w-2.5 h-2.5 rounded-full bg-indigo-600 hidden" id="${prefix}_dot_${idx}"></div>
+                        </div>
+                        <span class="font-semibold text-slate-800 text-sm md:text-base select-none">${item.q}</span>
+                    </div>
+                    <div id="${prefix}_input_box_${idx}" class="hidden mt-4 pl-8" onclick="event.stopPropagation()">
+                        <div class="flex justify-end mb-1.5">
+                            <button type="button" onclick="toggleDictation('${prefix}_textarea_${idx}', this)" class="bg-white hover:bg-indigo-50 text-slate-700 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+                                🎤 <span>Detta a voce</span>
+                            </button>
+                        </div>
+                        <textarea id="${prefix}_textarea_${idx}" rows="3" oninput="saveAndProgress()" class="w-full rounded-xl border border-slate-300 p-3 text-slate-700 text-sm md:text-base bg-white" placeholder="Scrivi o detta qui la tua risposta..."></textarea>
+                        <div class="mt-2.5">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">💡 Spunti dal tabellone SEMO (Clicca per inserire):</span>
+                            <div class="flex flex-wrap gap-1.5">${startersHtml}</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Renderizza blocco a scelta multipla (Max 2)
+        function renderMultiChoice(containerId, items, prefix) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            items.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.id = `${prefix}_card_${idx}`;
+                div.className = "question-option border-2 border-slate-200 rounded-xl p-4 cursor-pointer hover:border-indigo-300 bg-white";
+                div.onclick = () => toggleMultiOption(prefix, idx);
+
+                const startersHtml = item.starters.map(s => 
+                    `<button type="button" onclick="insertStarter('${prefix}_textarea_${idx}', '${s.replace(/'/g, "\\'")} ')" class="starter-chip text-xs bg-slate-50 border border-slate-300 text-slate-700 px-2.5 py-1 rounded-lg font-medium text-left">+ "${s}"</button>`
+                ).join('');
+
+                div.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <div id="${prefix}_box_${idx}" class="w-5 h-5 rounded-md border-2 border-slate-300 flex items-center justify-center mt-0.5 shrink-0 transition">
+                            <svg id="${prefix}_check_${idx}" class="w-3.5 h-3.5 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <div class="select-none">
+                            <span class="inline-block bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold px-2 py-0.5 rounded text-xs mb-1">${item.badge}</span>
+                            <p class="font-semibold text-slate-800 text-sm md:text-base">${item.text}</p>
+                        </div>
+                    </div>
+                    <div id="${prefix}_input_box_${idx}" class="hidden mt-4 pl-8" onclick="event.stopPropagation()">
+                        <div class="flex justify-end mb-1.5">
+                            <button type="button" onclick="toggleDictation('${prefix}_textarea_${idx}', this)" class="bg-white hover:bg-indigo-50 text-slate-700 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+                                🎤 <span>Detta a voce</span>
+                            </button>
+                        </div>
+                        <textarea id="${prefix}_textarea_${idx}" rows="3" oninput="saveAndProgress()" class="w-full rounded-xl border border-slate-300 p-3 text-slate-700 text-sm md:text-base bg-white" placeholder="Racconta qui la tua esperienza..."></textarea>
+                        <div class="mt-2.5">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">💡 Spunti dal tabellone SEMO (Clicca per inserire):</span>
+                            <div class="flex flex-wrap gap-1.5">${startersHtml}</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // Inserisce lo Starter Pack nella textarea (Miglioria 2)
+        function insertStarter(textareaId, starterText) {
+            const el = document.getElementById(textareaId);
+            const current = el.value;
+            el.value = current ? current.trim() + " " + starterText : starterText;
+            el.focus();
+            saveAndProgress();
+        }
+
+        // =========================================================================
+        // FIX 1: DETTATURA VOCALE ROBUSTA PER CHROME + GUIDA WINDOWS+H
+        // =========================================================================
+        function showDictationHelp(reasonText) {
+            document.getElementById('dictationHelpReason').innerText = reasonText;
+            const modal = document.getElementById('dictationHelpModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDictationHelp() {
+            const modal = document.getElementById('dictationHelpModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function stopDictationManual() {
+            if (activeRecognition) {
+                try { activeRecognition.stop(); } catch (e) {}
+            }
+            resetMicUI();
+        }
+
+        function resetMicUI() {
+            if (activeMicButton) {
+                activeMicButton.classList.remove('recording-mic');
+                activeMicButton.innerHTML = '🎤 <span>Detta a voce</span>';
+                activeMicButton = null;
+            }
+            document.getElementById('liveSpeechBanner').classList.add('hidden');
+            activeRecognition = null;
+            activeTextareaId = null;
+        }
+
+        function toggleDictation(textareaId, btnEl) {
+            // Se sta già registrando, fermalo
+            if (activeRecognition) {
+                stopDictationManual();
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                showDictationHelp("Questo browser (es. Firefox) non ha il microfono integrato, ma puoi usare la dettatura di Windows!");
+                document.getElementById(textareaId).focus();
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'it-IT';
+            recognition.continuous = true;      // Non si spegne alla prima pausa
+            recognition.interimResults = true;  // Mostra le parole in tempo reale mentre parla
+
+            activeRecognition = recognition;
+            activeMicButton = btnEl;
+            activeTextareaId = textareaId;
+
+            const targetTextarea = document.getElementById(textareaId);
+            targetTextarea.focus();
+
+            btnEl.classList.add('recording-mic');
+            btnEl.innerHTML = "🛑 <span>Ferma voce</span>";
+
+            const banner = document.getElementById('liveSpeechBanner');
+            const preview = document.getElementById('liveSpeechPreview');
+            banner.classList.remove('hidden');
+            preview.innerText = "Parla ora nel microfono...";
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                let finalChunk = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    const transcriptPiece = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalChunk += transcriptPiece;
+                    } else {
+                        interimTranscript += transcriptPiece;
+                    }
+                }
+
+                // Mostra anteprima live nel banner in basso
+                if (interimTranscript.trim()) {
+                    preview.innerText = '"' + interimTranscript + '..."';
+                }
+
+                // Inserisce il testo consolidato direttamente nella casella di testo
+                if (finalChunk.trim()) {
+                    const cleanChunk = finalChunk.trim();
+                    const currentVal = targetTextarea.value.trim();
+                    const capitalized = (!currentVal || currentVal.endsWith('.') || currentVal.endsWith('!') || currentVal.endsWith('?'))
+                        ? cleanChunk.charAt(0).toUpperCase() + cleanChunk.slice(1)
+                        : cleanChunk;
+
+                    targetTextarea.value = currentVal ? currentVal + " " + capitalized : capitalized;
+                    preview.innerText = "✓ Scritto: " + capitalized;
+                    saveAndProgress();
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.warn("Errore riconoscimento vocale:", event.error);
+                const err = event.error;
+                resetMicUI();
+                if (err === 'not-allowed' || err === 'service-not-allowed' || err === 'network') {
+                    showDictationHelp("Il microfono del browser è bloccato (spesso succede se il file è aperto direttamente dal PC senza internet o senza permesso microfono). Nessun problema: usa la scorciatoia di Windows qui sotto!");
+                }
+            };
+
+            recognition.onend = () => {
+                resetMicUI();
+            };
+
+            try {
+                recognition.start();
+            } catch (e) {
+                resetMicUI();
+                showDictationHelp("Non è stato possibile avviare il microfono del browser. Usa il tasto rapido di Windows qui sotto!");
+            }
+        }
+
+        // Gestione Settori Swissdoc (Miglioria 5)
+        function updateSectorExamples() {
+            const sel = document.getElementById('swissdocSelect').value;
+            const introEl = document.getElementById('fixed_intro');
+            if (sectorPlaceholders[sel]) {
+                introEl.placeholder = sectorPlaceholders[sel];
+            }
+            saveAndProgress();
+        }
+
+        // Navigazione Wizard (Miglioria 7)
+        function goToStep(stepNum) {
+            currentWizardStep = stepNum;
+            if (!isWizardMode) return;
+            for (let i = 1; i <= 5; i++) {
+                const sec = document.getElementById(`step_${i}`);
+                const tab = document.getElementById(`tab_step_${i}`);
+                if (i === stepNum) {
+                    sec.classList.remove('hidden');
+                    tab.className = "step-tab flex-1 py-2 px-3 rounded-xl font-bold text-xs md:text-sm transition whitespace-nowrap bg-indigo-600 text-white shadow-sm";
+                } else {
+                    sec.classList.add('hidden');
+                    tab.className = "step-tab flex-1 py-2 px-3 rounded-xl font-bold text-xs md:text-sm transition whitespace-nowrap text-slate-500 hover:bg-slate-100";
+                }
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleViewMode() {
+            isWizardMode = !isWizardMode;
+            const btn = document.getElementById('viewModeBtn');
+            const nav = document.getElementById('wizardNav');
+            const controls = document.querySelectorAll('.wizard-controls');
+
+            if (isWizardMode) {
+                btn.innerText = "Vista Completa";
+                nav.classList.remove('hidden');
+                controls.forEach(c => c.classList.remove('hidden'));
+                goToStep(currentWizardStep);
+            } else {
+                btn.innerText = "Vista a Passi";
+                nav.classList.add('hidden');
+                controls.forEach(c => c.classList.add('hidden'));
+                for (let i = 1; i <= 5; i++) {
+                    document.getElementById(`step_${i}`).classList.remove('hidden');
+                }
+            }
+        }
+
+        function selectSingleOption(prefix, selectedIdx, total, focusInput = true) {
+            if (prefix === 'mot') selectedMotivation = selectedIdx;
+            if (prefix === 'id') selectedIdentity = selectedIdx;
+
+            for (let i = 0; i < total; i++) {
+                const card = document.getElementById(`${prefix}_card_${i}`);
+                const circle = document.getElementById(`${prefix}_circle_${i}`);
+                const dot = document.getElementById(`${prefix}_dot_${i}`);
+                const inputBox = document.getElementById(`${prefix}_input_box_${i}`);
+
+                if (i === selectedIdx) {
+                    card.classList.add('selected');
+                    circle.classList.replace('border-slate-300', 'border-indigo-600');
+                    dot.classList.remove('hidden');
+                    inputBox.classList.remove('hidden');
+                    if (focusInput) setTimeout(() => document.getElementById(`${prefix}_textarea_${i}`).focus(), 50);
+                } else {
+                    card.classList.remove('selected');
+                    circle.classList.replace('border-indigo-600', 'border-slate-300');
+                    dot.classList.add('hidden');
+                    inputBox.classList.add('hidden');
+                }
+            }
+            saveAndProgress();
+        }
+
+        function toggleMultiOption(prefix, idx, forceSelect = false) {
+            const pos = selectedExperiences.indexOf(idx);
+            const card = document.getElementById(`${prefix}_card_${idx}`);
+            const box = document.getElementById(`${prefix}_box_${idx}`);
+            const check = document.getElementById(`${prefix}_check_${idx}`);
+            const inputBox = document.getElementById(`${prefix}_input_box_${idx}`);
+
+            if (pos === -1 || forceSelect) {
+                if (!forceSelect && selectedExperiences.length >= 2) {
+                    alert("Puoi scegliere al massimo 2 domande in questa sezione!");
+                    return;
+                }
+                if (pos === -1) selectedExperiences.push(idx);
+                card.classList.add('selected');
+                box.classList.replace('border-slate-300', 'border-indigo-600');
+                box.classList.add('bg-indigo-600');
+                check.classList.remove('hidden');
+                inputBox.classList.remove('hidden');
+                if (!forceSelect) setTimeout(() => document.getElementById(`${prefix}_textarea_${idx}`).focus(), 50);
+            } else {
+                selectedExperiences.splice(pos, 1);
+                card.classList.remove('selected');
+                box.classList.replace('border-indigo-600', 'border-slate-300');
+                box.classList.remove('bg-indigo-600');
+                check.classList.add('hidden');
+                inputBox.classList.add('hidden');
+            }
+            saveAndProgress();
+        }
+
+        // Salvataggio Automatico in localStorage (Miglioria 8)
+        function saveAndProgress() {
+            updateProgress();
+            const state = {
+                sector: document.getElementById('swissdocSelect').value,
+                fixed_intro: document.getElementById('fixed_intro').value,
+                fixed_future: document.getElementById('fixed_future').value,
+                fixed_promise: document.getElementById('fixed_promise').value,
+                fixed_cta: document.getElementById('fixed_cta').value,
+                conn_identity: document.getElementById('conn_identity').value,
+                conn_experience: document.getElementById('conn_experience').value,
+                selectedMotivation,
+                selectedIdentity,
+                selectedExperiences,
+                motAnswers: questionsDB.motivation.map((_, i) => document.getElementById(`mot_textarea_${i}`)?.value || ''),
+                idAnswers: questionsDB.identity.map((_, i) => document.getElementById(`id_textarea_${i}`)?.value || ''),
+                expAnswers: questionsDB.experience.map((_, i) => document.getElementById(`exp_textarea_${i}`)?.value || '')
+            };
+            localStorage.setItem('semo_videocv_state', JSON.stringify(state));
+            
+            const ind = document.getElementById('saveIndicator');
+            if (ind) {
+                ind.classList.remove('opacity-0');
+                clearTimeout(window.saveTimeout);
+                window.saveTimeout = setTimeout(() => ind.classList.add('opacity-0'), 1500);
+            }
+        }
+
+        function loadFromLocalStorage() {
+            const raw = localStorage.getItem('semo_videocv_state');
+            if (!raw) return;
+            try {
+                const state = JSON.parse(raw);
+                if (state.sector) {
+                    document.getElementById('swissdocSelect').value = state.sector;
+                    if (sectorPlaceholders[state.sector]) {
+                        document.getElementById('fixed_intro').placeholder = sectorPlaceholders[state.sector];
+                    }
+                }
+                document.getElementById('fixed_intro').value = state.fixed_intro || '';
+                document.getElementById('fixed_future').value = state.fixed_future || '';
+                document.getElementById('fixed_promise').value = state.fixed_promise || '';
+                document.getElementById('fixed_cta').value = state.fixed_cta || '';
+                if (state.conn_identity) document.getElementById('conn_identity').value = state.conn_identity;
+                if (state.conn_experience) document.getElementById('conn_experience').value = state.conn_experience;
+
+                if (state.motAnswers) {
+                    state.motAnswers.forEach((val, i) => {
+                        const el = document.getElementById(`mot_textarea_${i}`);
+                        if (el) el.value = val;
+                    });
+                }
+                if (state.idAnswers) {
+                    state.idAnswers.forEach((val, i) => {
+                        const el = document.getElementById(`id_textarea_${i}`);
+                        if (el) el.value = val;
+                    });
+                }
+                if (state.expAnswers) {
+                    state.expAnswers.forEach((val, i) => {
+                        const el = document.getElementById(`exp_textarea_${i}`);
+                        if (el) el.value = val;
+                    });
+                }
+
+                if (state.selectedMotivation !== null && state.selectedMotivation !== undefined) {
+                    selectSingleOption('mot', state.selectedMotivation, questionsDB.motivation.length, false);
+                }
+                if (state.selectedIdentity !== null && state.selectedIdentity !== undefined) {
+                    selectSingleOption('id', state.selectedIdentity, questionsDB.identity.length, false);
+                }
+                if (Array.isArray(state.selectedExperiences)) {
+                    state.selectedExperiences.forEach(idx => toggleMultiOption('exp', idx, true));
+                }
+            } catch (e) {
+                console.error("Errore caricamento salvataggio:", e);
+            }
+        }
+
+        function updateProgress() {
+            let completed = 0;
+            const totalRequired = 7;
+
+            if (document.getElementById('fixed_intro').value.trim().length > 5) completed++;
+            if (selectedMotivation !== null && document.getElementById(`mot_textarea_${selectedMotivation}`)?.value.trim().length > 5) completed++;
+            if (selectedIdentity !== null && document.getElementById(`id_textarea_${selectedIdentity}`)?.value.trim().length > 5) completed++;
+            
+            let expFilled = false;
+            selectedExperiences.forEach(idx => {
+                if (document.getElementById(`exp_textarea_${idx}`)?.value.trim().length > 5) expFilled = true;
+            });
+            if (expFilled) completed++;
+
+            if (document.getElementById('fixed_future').value.trim().length > 5) completed++;
+            if (document.getElementById('fixed_promise').value.trim().length > 5) completed++;
+            if (document.getElementById('fixed_cta').value.trim().length > 5) completed++;
+
+            const pct = Math.round((completed / totalRequired) * 100);
+            document.getElementById('progressBar').style.width = `${pct}%`;
+        }
+
+        function generateFinalScript() {
+            const errors = [];
+            const intro = document.getElementById('fixed_intro').value.trim();
+            const future = document.getElementById('fixed_future').value.trim();
+            const promise = document.getElementById('fixed_promise').value.trim();
+            const cta = document.getElementById('fixed_cta').value.trim();
+
+            if (!intro) errors.push("Passo 1: Presentazione iniziale mancante.");
+            
+            let motText = "";
+            if (selectedMotivation === null) {
+                errors.push("Passo 2: Scegli una domanda sulla tua motivazione.");
+            } else {
+                motText = document.getElementById(`mot_textarea_${selectedMotivation}`).value.trim();
+                if (!motText) errors.push("Passo 2: Scrivi la risposta alla domanda sulla motivazione.");
+            }
+
+            let idText = "";
+            if (selectedIdentity === null) {
+                errors.push("Passo 3: Scegli una domanda sul tuo carattere.");
+            } else {
+                idText = document.getElementById(`id_textarea_${selectedIdentity}`).value.trim();
+                if (!idText) errors.push("Passo 3: Scrivi la risposta alla domanda sul carattere.");
+            }
+
+            let expTexts = [];
+            if (selectedExperiences.length === 0) {
+                errors.push("Passo 4: Scegli almeno 1 domanda sulle tue esperienze o passioni.");
+            } else {
+                selectedExperiences.forEach(idx => {
+                    const t = document.getElementById(`exp_textarea_${idx}`).value.trim();
+                    if (t) expTexts.push(t);
+                });
+                if (expTexts.length === 0) errors.push("Passo 4: Scrivi la risposta alle domande sulle esperienze selezionate.");
+            }
+
+            if (!future) errors.push("Passo 5: Racconta come ti vedi nel futuro.");
+            if (!promise) errors.push("Passo 5: Spiega perché l'azienda dovrebbe scegliere te.");
+            if (!cta) errors.push("Passo 5: Scrivi il saluto finale.");
+
+            const alertBox = document.getElementById('validationAlert');
+            const alertList = document.getElementById('validationList');
+
+            if (errors.length > 0) {
+                alertList.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
+                alertBox.classList.remove('hidden');
+                alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            alertBox.classList.add('hidden');
+
+            // Connettivi (Miglioria 6)
+            const connId = document.getElementById('conn_identity').value;
+            const connExp = document.getElementById('conn_experience').value;
+
+            const formattedId = connId ? connId + idText.charAt(0).toLowerCase() + idText.slice(1) : idText;
+            if (connExp && expTexts.length > 0) {
+                expTexts[0] = connExp + expTexts[0].charAt(0).toLowerCase() + expTexts[0].slice(1);
+            }
+
+            const scriptParts = [
+                intro,
+                motText,
+                formattedId,
+                ...expTexts,
+                future,
+                promise,
+                cta
+            ];
+
+            const finalOutput = document.getElementById('finalScriptText');
+            finalOutput.innerText = scriptParts.join('\n\n');
+
+            // Aggiorna intestazione stampa con settore Swissdoc
+            const sectorSelect = document.getElementById('swissdocSelect');
+            const sectorLabel = document.getElementById('print-sector-label');
+            if (sectorSelect.value !== "0.000.0.0") {
+                sectorLabel.innerText = "Settore: " + sectorSelect.options[sectorSelect.selectedIndex].text;
+            } else {
+                sectorLabel.innerText = "";
+            }
+
+            updateReadingTime();
+
+            const outContainer = document.getElementById('scriptOutputContainer');
+            outContainer.classList.remove('hidden');
+            outContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Tachimetro Durata Video (Miglioria 3)
+        function updateReadingTime() {
+            const text = document.getElementById('finalScriptText').innerText.trim();
+            const words = text ? text.split(/\s+/).length : 0;
+            const seconds = Math.max(5, Math.round((words / 130) * 60));
+            const badge = document.getElementById('readingTimeBadge');
+
+            let status = "";
+            if (seconds < 35) {
+                status = `⏱️ ~${seconds} sec (${words} parole) • Un po' corto, aggiungi qualche dettaglio!`;
+                badge.className = "bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full";
+            } else if (seconds <= 100) {
+                status = `⏱️ ~${seconds} sec (${words} parole) • Lunghezza ideale per il Video CV!`;
+                badge.className = "bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full";
+            } else {
+                status = `⏱️ ~${seconds} sec (${words} parole) • Un po' lungo, prova a sintetizzare!`;
+                badge.className = "bg-rose-500/20 text-rose-300 text-xs font-bold px-3 py-1 rounded-full";
+            }
+            badge.innerText = status;
+        }
+
+        // =========================================================================
+        // FIX 3: INVIO EMAIL IN NUOVA SCHEDA (target="_blank") + COPIA AUTOMATICA
+        // =========================================================================
+        function sendEmailToTeacher() {
+            const scriptText = document.getElementById('finalScriptText').innerText.trim();
+            const sectorSelect = document.getElementById('swissdocSelect');
+            const sectorName = sectorSelect.value !== "0.000.0.0" 
+                ? sectorSelect.options[sectorSelect.selectedIndex].text 
+                : "Non specificato";
+
+            const fullBodyText = 
+                `Ciao Elia,\n\necco la traccia del mio copione per il Video CV:\n` +
+                `Settore Swissdoc: ${sectorName}\n` +
+                `----------------------------------------\n\n` +
+                `${scriptText}\n\n` +
+                `----------------------------------------\n` +
+                `Generato con Video CV Builder - Città dei Mestieri`;
+
+            // 1. Copia di sicurezza negli appunti
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(fullBodyText).catch(() => {});
+            }
+
+            // 2. Apertura mailto in una NUOVA finestra/scheda per qualsiasi browser
+            const subject = encodeURIComponent("Copione Video CV - SEMO");
+            const body = encodeURIComponent(fullBodyText);
+            const mailtoUrl = `mailto:elia.sgroi@edu.ti.ch?subject=${subject}&body=${body}`;
+
+            const link = document.createElement('a');
+            link.href = mailtoUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Mostra nota di conferma sotto i pulsanti
+            const note = document.getElementById('emailConfirmNote');
+            note.classList.remove('hidden');
+        }
+
+        // Modalità Teleprompter / Gobbo Elettronico (Miglioria 4)
+        function openTeleprompter() {
+            const text = document.getElementById('finalScriptText').innerText;
+            document.getElementById('prompterText').innerText = text;
+            const modal = document.getElementById('teleprompterModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.getElementById('prompterViewport').scrollTop = 0;
+        }
+
+        function closeTeleprompter() {
+            stopPrompterScroll();
+            const modal = document.getElementById('teleprompterModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function togglePrompterScroll() {
+            const btn = document.getElementById('prompterPlayBtn');
+            if (prompterInterval) {
+                stopPrompterScroll();
+            } else {
+                btn.innerText = "⏸ Pausa";
+                btn.classList.replace('bg-emerald-600', 'bg-amber-600');
+                prompterInterval = setInterval(() => {
+                    const vp = document.getElementById('prompterViewport');
+                    const speed = parseInt(document.getElementById('prompterSpeed').value, 10);
+                    vp.scrollTop += speed;
+                }, 45);
+            }
+        }
+
+        function stopPrompterScroll() {
+            if (prompterInterval) {
+                clearInterval(prompterInterval);
+                prompterInterval = null;
+            }
+            const btn = document.getElementById('prompterPlayBtn');
+            btn.innerText = "▶ Avvia Scorrimento";
+            btn.classList.replace('bg-amber-600', 'bg-emerald-600');
+        }
+
+        function copyToClipboard() {
+            const text = document.getElementById('finalScriptText').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerHTML = `<span>✅ Testo Copiato!</span>`;
+                btn.classList.replace('bg-slate-800', 'bg-emerald-600');
+                setTimeout(() => {
+                    btn.innerHTML = `<span>📋 Copia Testo</span>`;
+                    btn.classList.replace('bg-emerald-600', 'bg-slate-800');
+                }, 2500);
+            });
+        }
+
+        function resetForm() {
+            if (confirm("Vuoi davvero cancellare tutte le risposte salvate e ricominciare da capo?")) {
+                stopDictationManual();
+                localStorage.removeItem('semo_videocv_state');
+                document.getElementById('swissdocSelect').value = '0.000.0.0';
+                document.getElementById('fixed_intro').value = '';
+                document.getElementById('fixed_future').value = '';
+                document.getElementById('fixed_promise').value = '';
+                document.getElementById('fixed_cta').value = '';
+                document.getElementById('conn_identity').value = '';
+                document.getElementById('conn_experience').value = '';
+                selectedMotivation = null;
+                selectedIdentity = null;
+                selectedExperiences = [];
+                document.getElementById('scriptOutputContainer').classList.add('hidden');
+                document.getElementById('validationAlert').classList.add('hidden');
+                document.getElementById('emailConfirmNote').classList.add('hidden');
+                initApp();
+                goToStep(1);
+            }
+        }
+
+        // Avvio
+        initApp();
+    </script>
+</body>
+</html>
