@@ -116,9 +116,9 @@
 <body class="min-h-screen text-slate-800 flex flex-col justify-between">
 
     <div>
-        <!-- Header Istituzionale con Logo CDM -->
+        <!-- Header Istituzionale con Logo CDM e Salva/Carica File -->
         <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
-            <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+            <div class="max-w-4xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-3.5">
                     <!-- Logo CDM Vettoriale Integrato -->
                     <div class="cdm-logo select-none" title="Città dei Mestieri della Svizzera italiana">
@@ -140,20 +140,32 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <div class="text-right hidden md:block">
+                <!-- Barra Strumenti: Progresso + Salva/Carica su Drive + Vista -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="text-right hidden lg:block mr-2">
                         <div class="flex items-center justify-end gap-1.5">
                             <span id="saveIndicator" class="text-[11px] text-emerald-600 font-semibold opacity-0 transition-opacity duration-300">✓ Salvato</span>
                             <span class="text-xs font-semibold text-indigo-600 uppercase tracking-wider">Progresso</span>
                         </div>
-                        <div class="w-32 h-2 bg-slate-100 rounded-full mt-1 overflow-hidden">
+                        <div class="w-28 h-2 bg-slate-100 rounded-full mt-1 overflow-hidden">
                             <div id="progressBar" class="h-full bg-indigo-600 rounded-full transition-all duration-300" style="width: 0%"></div>
                         </div>
                     </div>
-                    <button onclick="toggleViewMode()" id="viewModeBtn" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-1.5 rounded-lg transition" title="Passa dalla vista a passi alla vista completa">
+
+                    <!-- PULSANTI SALVA E CARICA PROGETTO SU FILE (Soluzione A per PC che si resettano) -->
+                    <button onclick="exportProjectFile()" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm" title="Scarica un file da salvare sul tuo Drive per non perdere il lavoro">
+                        <span>💾 Salva su file</span>
+                    </button>
+                    
+                    <button onclick="document.getElementById('importFileInput').click()" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm" title="Carica il file che avevi salvato sul tuo Drive per riprendere da dove eri rimasto">
+                        <span>📂 Apri file</span>
+                    </button>
+                    <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importProjectFile(event)">
+
+                    <button onclick="toggleViewMode()" id="viewModeBtn" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-3 py-2 rounded-xl transition" title="Passa dalla vista a passi alla vista completa">
                         Vista Completa
                     </button>
-                    <button onclick="resetForm()" class="text-xs text-slate-400 hover:text-rose-600 font-medium px-2 py-1.5 rounded transition">
+                    <button onclick="resetForm()" class="text-xs text-slate-400 hover:text-rose-600 font-medium px-2 py-1.5 rounded transition" title="Cancella tutto e ricomincia">
                         Ricomincia
                     </button>
                 </div>
@@ -172,7 +184,21 @@
             </button>
         </div>
 
+        <!-- Notifica Caricamento File Completato -->
+        <div id="fileToast" class="hidden fixed top-20 right-5 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-xl font-bold text-sm flex items-center gap-2 no-print">
+            <span>✅</span>
+            <span id="fileToastText">Lavoro caricato con successo!</span>
+        </div>
+
         <main class="max-w-3xl mx-auto px-4 mt-6 space-y-6 pb-16">
+
+            <!-- Promemoria Salvataggio Drive per i ragazzi -->
+            <div class="bg-indigo-50/90 border border-indigo-200 rounded-2xl px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-indigo-950 no-print">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-lg">💡</span>
+                    <span><strong>Non fai in tempo a finire oggi?</strong> Clicca su <strong>"💾 Salva su file"</strong> in alto e metti il file sul tuo <strong>Drive</strong>. La prossima volta clicca su <strong>"📂 Apri file"</strong> per ripartire da qui!</span>
+                </div>
+            </div>
 
             <!-- Selettore Settore Professionale SWISSDOC (Miglioria 5) -->
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-indigo-100 no-print">
@@ -413,7 +439,7 @@
                 </button>
             </div>
 
-            <!-- OUTPUT DEL COPIONE (Con layout bottoni anti-taglio su 2 righe) -->
+            <!-- OUTPUT DEL COPIONE -->
             <div id="scriptOutputContainer" class="hidden pt-4">
                 
                 <!-- Intestazione visibile SOLO su carta stampata -->
@@ -431,14 +457,14 @@
 
                 <div id="scriptCard" class="bg-slate-900 text-white rounded-3xl p-6 md:p-8 shadow-2xl border border-slate-700 relative">
                     
-                    <!-- Intestazione + Tachimetro -->
+                    <!-- Intestazione + Tachimetro (Fino a 3 minuti) -->
                     <div class="border-b border-slate-700 pb-5 mb-6 no-print">
                         <div class="flex flex-wrap items-center gap-2 mb-2">
                             <span class="bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Pronto</span>
                             <span id="readingTimeBadge" class="bg-indigo-500/20 text-indigo-300 text-xs font-bold px-3 py-1 rounded-full">⏱️ Calcolo durata...</span>
                         </div>
                         <h3 class="text-2xl font-extrabold">Il tuo Copione Completo</h3>
-                        <p class="text-slate-400 text-xs mt-1">Puoi cliccare dentro il testo qui sotto per correggere o cambiare qualsiasi parola prima di inviarlo o stamparlo.</p>
+                        <p class="text-slate-400 text-xs mt-1">Puoi cliccare dentro il testo qui sotto per correggere o aggiungere dettagli prima di inviarlo o stamparlo.</p>
 
                         <!-- GRIGLIA PULSANTI ANTI-TAGLIO (2 Righe) -->
                         <div class="mt-5 space-y-3">
@@ -447,15 +473,18 @@
                                 <span>🎥 Avvia Gobbo Elettronico (Teleprompter a tutto schermo)</span>
                             </button>
 
-                            <!-- Riga 2: 3 Colonne ben distribuite (Invia Mail, Copia, Stampa) -->
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <button onclick="sendEmailToTeacher()" id="emailBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs md:text-sm shadow-md">
+                            <!-- Riga 2: 4 Colonne ben distribuite (Invia Mail, Copia, Salva File, Stampa) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                                <button onclick="sendEmailToTeacher()" id="emailBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-xs md:text-sm shadow-md">
                                     <span>✉️ Invia a Elia Sgroi</span>
                                 </button>
-                                <button onclick="copyToClipboard()" id="copyBtn" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs md:text-sm border border-slate-600">
+                                <button onclick="copyToClipboard()" id="copyBtn" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-xs md:text-sm border border-slate-600">
                                     <span>📋 Copia Testo</span>
                                 </button>
-                                <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 text-xs md:text-sm shadow-md">
+                                <button onclick="exportProjectFile()" class="bg-slate-800 hover:bg-slate-700 text-indigo-300 font-semibold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-xs md:text-sm border border-slate-600">
+                                    <span>💾 Salva su file</span>
+                                </button>
+                                <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-xs md:text-sm shadow-md">
                                     <span>🖨️ Stampa Copione</span>
                                 </button>
                             </div>
@@ -773,7 +802,7 @@
         }
 
         // =========================================================================
-        // FIX 1: DETTATURA VOCALE ROBUSTA PER CHROME + GUIDA WINDOWS+H
+        // DETTATURA VOCALE ROBUSTA PER CHROME + GUIDA WINDOWS+H
         // =========================================================================
         function showDictationHelp(reasonText) {
             document.getElementById('dictationHelpReason').innerText = reasonText;
@@ -807,7 +836,6 @@
         }
 
         function toggleDictation(textareaId, btnEl) {
-            // Se sta già registrando, fermalo
             if (activeRecognition) {
                 stopDictationManual();
                 return;
@@ -822,8 +850,8 @@
 
             const recognition = new SpeechRecognition();
             recognition.lang = 'it-IT';
-            recognition.continuous = true;      // Non si spegne alla prima pausa
-            recognition.interimResults = true;  // Mostra le parole in tempo reale mentre parla
+            recognition.continuous = true;
+            recognition.interimResults = true;
 
             activeRecognition = recognition;
             activeMicButton = btnEl;
@@ -853,12 +881,10 @@
                     }
                 }
 
-                // Mostra anteprima live nel banner in basso
                 if (interimTranscript.trim()) {
                     preview.innerText = '"' + interimTranscript + '..."';
                 }
 
-                // Inserisce il testo consolidato direttamente nella casella di testo
                 if (finalChunk.trim()) {
                     const cleanChunk = finalChunk.trim();
                     const currentVal = targetTextarea.value.trim();
@@ -873,11 +899,10 @@
             };
 
             recognition.onerror = (event) => {
-                console.warn("Errore riconoscimento vocale:", event.error);
                 const err = event.error;
                 resetMicUI();
                 if (err === 'not-allowed' || err === 'service-not-allowed' || err === 'network') {
-                    showDictationHelp("Il microfono del browser è bloccato (spesso succede se il file è aperto direttamente dal PC senza internet o senza permesso microfono). Nessun problema: usa la scorciatoia di Windows qui sotto!");
+                    showDictationHelp("Il microfono del browser è bloccato. Nessun problema: usa la scorciatoia di Windows qui sotto!");
                 }
             };
 
@@ -998,10 +1023,12 @@
             saveAndProgress();
         }
 
-        // Salvataggio Automatico in localStorage (Miglioria 8)
-        function saveAndProgress() {
-            updateProgress();
-            const state = {
+        // Costruisce l'oggetto Stato completo (usato sia per localStorage che per Esporta File)
+        function collectCurrentState() {
+            return {
+                version: "2.0-SEMO",
+                savedAt: new Date().toISOString(),
+                currentWizardStep,
                 sector: document.getElementById('swissdocSelect').value,
                 fixed_intro: document.getElementById('fixed_intro').value,
                 fixed_future: document.getElementById('fixed_future').value,
@@ -1016,6 +1043,125 @@
                 idAnswers: questionsDB.identity.map((_, i) => document.getElementById(`id_textarea_${i}`)?.value || ''),
                 expAnswers: questionsDB.experience.map((_, i) => document.getElementById(`exp_textarea_${i}`)?.value || '')
             };
+        }
+
+        // Applica un oggetto Stato all'interfaccia
+        function applyStateToUI(state) {
+            // Reset selezioni multiple precedenti in UI
+            selectedMotivation = null;
+            selectedIdentity = null;
+            selectedExperiences = [];
+            renderSingleChoice('motivation_list', questionsDB.motivation, 'mot');
+            renderSingleChoice('identity_list', questionsDB.identity, 'id');
+            renderMultiChoice('experience_list', questionsDB.experience, 'exp');
+
+            if (state.sector) {
+                document.getElementById('swissdocSelect').value = state.sector;
+                if (sectorPlaceholders[state.sector]) {
+                    document.getElementById('fixed_intro').placeholder = sectorPlaceholders[state.sector];
+                }
+            }
+            document.getElementById('fixed_intro').value = state.fixed_intro || '';
+            document.getElementById('fixed_future').value = state.fixed_future || '';
+            document.getElementById('fixed_promise').value = state.fixed_promise || '';
+            document.getElementById('fixed_cta').value = state.fixed_cta || '';
+            document.getElementById('conn_identity').value = state.conn_identity || '';
+            document.getElementById('conn_experience').value = state.conn_experience || '';
+
+            if (state.motAnswers) {
+                state.motAnswers.forEach((val, i) => {
+                    const el = document.getElementById(`mot_textarea_${i}`);
+                    if (el) el.value = val;
+                });
+            }
+            if (state.idAnswers) {
+                state.idAnswers.forEach((val, i) => {
+                    const el = document.getElementById(`id_textarea_${i}`);
+                    if (el) el.value = val;
+                });
+            }
+            if (state.expAnswers) {
+                state.expAnswers.forEach((val, i) => {
+                    const el = document.getElementById(`exp_textarea_${i}`);
+                    if (el) el.value = val;
+                });
+            }
+
+            if (state.selectedMotivation !== null && state.selectedMotivation !== undefined) {
+                selectSingleOption('mot', state.selectedMotivation, questionsDB.motivation.length, false);
+            }
+            if (state.selectedIdentity !== null && state.selectedIdentity !== undefined) {
+                selectSingleOption('id', state.selectedIdentity, questionsDB.identity.length, false);
+            }
+            if (Array.isArray(state.selectedExperiences)) {
+                state.selectedExperiences.forEach(idx => toggleMultiOption('exp', idx, true));
+            }
+
+            if (state.currentWizardStep && isWizardMode) {
+                goToStep(state.currentWizardStep);
+            }
+            updateProgress();
+        }
+
+        // =========================================================================
+        // SOLUZIONE A: SALVA ED ESPORTA FILE PER IL DRIVE + CARICA FILE
+        // =========================================================================
+        function exportProjectFile() {
+            const state = collectCurrentState();
+            const defaultName = "mio_videocv";
+            const studentName = prompt("Inserisci il tuo nome per salvare il file (potrai metterlo sul tuo Drive e riaprirlo la prossima volta):", defaultName);
+            
+            if (studentName === null) return; // Annullato dall'utente
+
+            const cleanName = studentName.trim().replace(/[^a-zA-Z0-9_-]/g, '_') || defaultName;
+            const fileName = `videocv_${cleanName}.json`;
+
+            const dataStr = JSON.stringify(state, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast(`File "${fileName}" scaricato! Salvalo sul tuo Drive.`);
+        }
+
+        function importProjectFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const loadedState = JSON.parse(e.target.result);
+                    applyStateToUI(loadedState);
+                    localStorage.setItem('semo_videocv_state', JSON.stringify(loadedState));
+                    showToast("Bentornato! Tutte le tue risposte sono state ricaricate.");
+                } catch (err) {
+                    alert("Attenzione: il file selezionato non è valido. Assicurati di aprire il file .json salvato con Video CV Builder!");
+                }
+                event.target.value = ''; // Permette di ricaricare lo stesso file se necessario
+            };
+            reader.readAsText(file);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('fileToast');
+            document.getElementById('fileToastText').innerText = msg;
+            toast.classList.remove('hidden');
+            clearTimeout(window.toastTimer);
+            window.toastTimer = setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+
+        // Salvataggio Automatico in localStorage (Miglioria 8)
+        function saveAndProgress() {
+            updateProgress();
+            const state = collectCurrentState();
             localStorage.setItem('semo_videocv_state', JSON.stringify(state));
             
             const ind = document.getElementById('saveIndicator');
@@ -1031,47 +1177,7 @@
             if (!raw) return;
             try {
                 const state = JSON.parse(raw);
-                if (state.sector) {
-                    document.getElementById('swissdocSelect').value = state.sector;
-                    if (sectorPlaceholders[state.sector]) {
-                        document.getElementById('fixed_intro').placeholder = sectorPlaceholders[state.sector];
-                    }
-                }
-                document.getElementById('fixed_intro').value = state.fixed_intro || '';
-                document.getElementById('fixed_future').value = state.fixed_future || '';
-                document.getElementById('fixed_promise').value = state.fixed_promise || '';
-                document.getElementById('fixed_cta').value = state.fixed_cta || '';
-                if (state.conn_identity) document.getElementById('conn_identity').value = state.conn_identity;
-                if (state.conn_experience) document.getElementById('conn_experience').value = state.conn_experience;
-
-                if (state.motAnswers) {
-                    state.motAnswers.forEach((val, i) => {
-                        const el = document.getElementById(`mot_textarea_${i}`);
-                        if (el) el.value = val;
-                    });
-                }
-                if (state.idAnswers) {
-                    state.idAnswers.forEach((val, i) => {
-                        const el = document.getElementById(`id_textarea_${i}`);
-                        if (el) el.value = val;
-                    });
-                }
-                if (state.expAnswers) {
-                    state.expAnswers.forEach((val, i) => {
-                        const el = document.getElementById(`exp_textarea_${i}`);
-                        if (el) el.value = val;
-                    });
-                }
-
-                if (state.selectedMotivation !== null && state.selectedMotivation !== undefined) {
-                    selectSingleOption('mot', state.selectedMotivation, questionsDB.motivation.length, false);
-                }
-                if (state.selectedIdentity !== null && state.selectedIdentity !== undefined) {
-                    selectSingleOption('id', state.selectedIdentity, questionsDB.identity.length, false);
-                }
-                if (Array.isArray(state.selectedExperiences)) {
-                    state.selectedExperiences.forEach(idx => toggleMultiOption('exp', idx, true));
-                }
+                applyStateToUI(state);
             } catch (e) {
                 console.error("Errore caricamento salvataggio:", e);
             }
@@ -1189,30 +1295,42 @@
             outContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // Tachimetro Durata Video (Miglioria 3)
+        // Formatta i secondi in "X min Y sec"
+        function formatTime(totalSeconds) {
+            if (totalSeconds < 60) return `${totalSeconds} sec`;
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            return secs > 0 ? `${mins} min ${secs} sec` : `${mins} min`;
+        }
+
+        // =========================================================================
+        // TACHIMETRO DURATA INCORAGGIANTE (Fino a 3 minuti = 180 secondi)
+        // =========================================================================
         function updateReadingTime() {
             const text = document.getElementById('finalScriptText').innerText.trim();
             const words = text ? text.split(/\s+/).length : 0;
             const seconds = Math.max(5, Math.round((words / 130) * 60));
+            const timeLabel = formatTime(seconds);
             const badge = document.getElementById('readingTimeBadge');
 
             let status = "";
-            if (seconds < 35) {
-                status = `⏱️ ~${seconds} sec (${words} parole) • Un po' corto, aggiungi qualche dettaglio!`;
+            if (seconds < 45) {
+                // Sotto i 45 secondi (~95 parole): sprona a scrivere un po' di più
+                status = `⏱️ ~${timeLabel} (${words} parole) • Un po' corto! Prova ad aggiungere qualche dettaglio o esempio in più.`;
                 badge.className = "bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full";
-            } else if (seconds <= 100) {
-                status = `⏱️ ~${seconds} sec (${words} parole) • Lunghezza ideale per il Video CV!`;
+            } else if (seconds <= 180) {
+                // Tra 45 secondi e 3 minuti (180 sec): zona verde perfetta!
+                status = `⏱️ ~${timeLabel} (${words} parole) • Lunghezza ottima per il Video CV! Ben fatto!`;
                 badge.className = "bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full";
             } else {
-                status = `⏱️ ~${seconds} sec (${words} parole) • Un po' lungo, prova a sintetizzare!`;
-                badge.className = "bg-rose-500/20 text-rose-300 text-xs font-bold px-3 py-1 rounded-full";
+                // Oltre i 3 minuti: tono positivo ma ricorda il ritmo
+                status = `⏱️ ~${timeLabel} (${words} parole) • Molto ricco e completo! Ricorda solo di mantenere un buon ritmo mentre parli.`;
+                badge.className = "bg-sky-500/20 text-sky-300 text-xs font-bold px-3 py-1 rounded-full";
             }
             badge.innerText = status;
         }
 
-        // =========================================================================
-        // FIX 3: INVIO EMAIL IN NUOVA SCHEDA (target="_blank") + COPIA AUTOMATICA
-        // =========================================================================
+        // Invio Email in nuova scheda + Copia automatica
         function sendEmailToTeacher() {
             const scriptText = document.getElementById('finalScriptText').innerText.trim();
             const sectorSelect = document.getElementById('swissdocSelect');
@@ -1228,12 +1346,10 @@
                 `----------------------------------------\n` +
                 `Generato con Video CV Builder - Città dei Mestieri`;
 
-            // 1. Copia di sicurezza negli appunti
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(fullBodyText).catch(() => {});
             }
 
-            // 2. Apertura mailto in una NUOVA finestra/scheda per qualsiasi browser
             const subject = encodeURIComponent("Copione Video CV - SEMO");
             const body = encodeURIComponent(fullBodyText);
             const mailtoUrl = `mailto:elia.sgroi@edu.ti.ch?subject=${subject}&body=${body}`;
@@ -1246,7 +1362,6 @@
             link.click();
             document.body.removeChild(link);
 
-            // Mostra nota di conferma sotto i pulsanti
             const note = document.getElementById('emailConfirmNote');
             note.classList.remove('hidden');
         }
@@ -1307,7 +1422,7 @@
         }
 
         function resetForm() {
-            if (confirm("Vuoi davvero cancellare tutte le risposte salvate e ricominciare da capo?")) {
+            if (confirm("Vuoi davvero cancellare tutte le risposte e ricominciare da capo?")) {
                 stopDictationManual();
                 localStorage.removeItem('semo_videocv_state');
                 document.getElementById('swissdocSelect').value = '0.000.0.0';
